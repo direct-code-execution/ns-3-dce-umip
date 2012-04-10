@@ -53,7 +53,7 @@ def dce_kw(**kw):
     return d
 
 def build_dce_tests(module, kern):
-    module.add_runner_test(needed=['core', 'dce-quagga', 'internet', 'csma'],
+    module.add_runner_test(needed=['core', 'dce-quagga', 'internet', 'csma', 'dce-umip'],
                            source=['test/dce-umip-test.cc'])
 
 def build_dce_examples(module):
@@ -65,13 +65,13 @@ def build_dce_examples(module):
                                     lib = lib))
 
 def build_dce_kernel_examples(module):
-    module.add_example(needed = ['core', 'internet', 'dce', 'csma', 'mobility', 'wifi', 'visualizer', 'dce-quagga', 'dce-umip'],
-                       target='bin/dce-mip6d',
-                       source=['example/dce-mip6d.cc'])
+    module.add_example(needed = ['core', 'internet', 'dce', 'csma', 'mobility', 'wifi', 'dce-quagga', 'dce-umip'],
+                       target='bin/dce-umip-nemo',
+                       source=['example/dce-umip-nemo.cc'])
 
-    module.add_example(needed = ['core', 'internet', 'dce', 'csma', 'mobility', 'wifi', 'visualizer', 'dce-quagga', 'dce-umip'],
+    module.add_example(needed = ['core', 'internet', 'dce', 'csma', 'mobility', 'wifi', 'dce-quagga', 'dce-umip'],
                        target='bin/dce-dsmip6d',
-                       source=['example/dce-dsmip6d.cc'])
+                       source=['example/dce-umip-dsmip6.cc'])
 
 
 

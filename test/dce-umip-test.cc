@@ -24,10 +24,9 @@
 #include "ns3/dce-module.h"
 #include "ns3/quagga-helper.h"
 #include "ns3/csma-helper.h"
-#include "ns3/v4ping.h"
-#include "ns3/ping6.h"
+#include "ns3/mip6d-helper.h"
+#include "ns3/ping6-helper.h"
 #include "ns3/ethernet-header.h"
-#include "ns3/icmpv4.h"
 
 #define OUTPUT(x)                                                       \
   {                                                                     \
@@ -147,94 +146,67 @@ DceUmipTestCase::DoRun (void)
   //  Step 1
   //  Node Basic Configuration
   //
-  std::string routerPort;
-
-  NodeContainer nodes;
-  nodes.Create (2);
+  NodeContainer mr, ha, ar;
+  ha.Create (1);
+  ar.Create (1);
+  mr.Create (1);
+  NodeContainer mnn, cn;
+  cn.Create (1);
+  mnn.Create (1);
 
   CsmaHelper csma;
-
   NetDeviceContainer devices, dev1, dev2;
-  devices = csma.Install (nodes);
-  dev1 = csma.Install (nodes.Get (0));
-  dev2 = csma.Install (nodes.Get (1));
-  DceManagerHelper processManager;
+  devices = csma.Install (NodeContainer (ar, ha));
+  dev1 = csma.Install (NodeContainer (ar, mr));
+  NetDeviceContainer mnp_devices = csma.Install (NodeContainer (mr, mnn));
+  NetDeviceContainer cn_devices = csma.Install (NodeContainer (ar, cn));
 
   //
   // Step 2
   // Address Configuration
   //
-  //
-  if (m_useKernel == false)
-    {
-      Ipv4AddressHelper ipv4AddrHelper;
-      Ipv6AddressHelper ipv6AddrHelper;
-      // Internet stack install
-      InternetStackHelper stack;    // IPv4 is required for GlobalRouteMan
-      Ipv4DceRoutingHelper ipv4RoutingHelper;
-      stack.SetRoutingHelper (ipv4RoutingHelper);
-      stack.Install (nodes);
 
-      ipv4AddrHelper.SetBase ("10.0.0.0", "255.255.255.0");
-      ipv4AddrHelper.Assign (devices);
-      ipv6AddrHelper.NewNetwork ("2001:db8:0:1::", Ipv6Prefix (64));
-      ipv6AddrHelper.Assign (devices);
+  std::string ha_sim0 ("2001:1:2:3::1/64");
+  DceManagerHelper processManager;
+  //      processManager.SetLoader ("ns3::DlmLoaderFactory");
+  processManager.SetTaskManagerAttribute ("FiberManagerType",
+                                          EnumValue (0));
+  processManager.SetNetworkStack ("ns3::LinuxSocketFdFactory",
+                                  "Library", StringValue ("libnet-next-2.6.so"));
+  processManager.Install (ha);
+  processManager.Install (mr);
+  processManager.Install (ar);
 
-      ipv4AddrHelper.SetBase ("11.0.0.0", "255.255.255.0");
-      ipv4AddrHelper.Assign (dev1);
-      ipv6AddrHelper.NewNetwork ("2001:db8:0:2::", Ipv6Prefix (64));
-      ipv6AddrHelper.Assign (dev1);
+  // For HA or LMA
+  AddAddress (ha.Get (0), Seconds (0.1), "sim0", ha_sim0.c_str ());
+  RunIp (ha.Get (0), Seconds (0.11), "link set lo up");
+  RunIp (ha.Get (0), Seconds (0.11), "link set sim0 up");
+  RunIp (ha.Get (0), Seconds (3.0), "link set ip6tnl0 up");
+  RunIp (ha.Get (0), Seconds (3.15), "-6 route add 2001:1:2:4::/64 via 2001:1:2:3::2 dev sim0");
+  RunIp (ha.Get (0), Seconds (3.15), "-6 route add 2001:1:2:6::/64 via 2001:1:2:3::2 dev sim0");
 
-      ipv4AddrHelper.SetBase ("12.0.0.0", "255.255.255.0");
-      ipv4AddrHelper.Assign (dev2);
-      ipv6AddrHelper.NewNetwork ("2001:db8:0:3::", Ipv6Prefix (64));
-      ipv6AddrHelper.Assign (dev2);
+  // For AR (the intermediate node)
+  AddAddress (ar.Get (0), Seconds (0.1), "sim0", "2001:1:2:3::2/64");
+  RunIp (ar.Get (0), Seconds (0.11), "link set lo up");
+  RunIp (ar.Get (0), Seconds (0.11), "link set sim0 up");
+  AddAddress (ar.Get (0), Seconds (0.12), "sim1", "2001:1:2:4::2/64");
+  RunIp (ar.Get (0), Seconds (0.13), "link set sim1 up");
+  AddAddress (ar.Get (0), Seconds (0.13), "sim2", "2001:1:2:6::2/64");
+  RunIp (ar.Get (0), Seconds (0.14), "link set sim2 up");
+  RunIp (ar.Get (0), Seconds (0.15), "-6 route add 2001:1:2::/48 via 2001:1:2:3::1 dev sim0");
+  //  RunIp (ar.Get (0), Seconds (0.15), "route show table all");
 
-      processManager.SetNetworkStack ("ns3::Ns3SocketFdFactory");
-      processManager.Install (nodes);
 
-      routerPort = "ns3-device0";
-      if (m_debug)
-        {
-          Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper> ("routes-" + m_testname + ".log", std::ios::out);
-          ipv4RoutingHelper.PrintRoutingTableAllEvery (Seconds (10), routingStream);
-        }
-    }
-  else if (m_useKernel == true)
-    {
-      //      processManager.SetLoader ("ns3::DlmLoaderFactory");
-      processManager.SetTaskManagerAttribute ("FiberManagerType",
-                                              EnumValue (0));
-      processManager.SetNetworkStack ("ns3::LinuxSocketFdFactory",
-                                      "Library", StringValue ("libnet-next-2.6.so"));
-      processManager.Install (nodes);
+  // For MR or MAG
+  RunIp (mr.Get (0), Seconds (0.11), "link set lo up");
+  RunIp (mr.Get (0), Seconds (0.11), "link set sim0 up");
+  RunIp (mr.Get (0), Seconds (3.0), "link set ip6tnl0 up");
+  //      RunIp (mr.Get (0), Seconds (3.1), "addr list");
+  AddAddress (mr.Get (0), Seconds (0.12), "sim1", "2001:1:2:5::1/64");
+  RunIp (mr.Get (0), Seconds (0.13), "link set sim1 up");
 
-      // IP address configuration
-      AddAddress (nodes.Get (0), Seconds (0.1), "sim0", "2001:db8:0:1::1/64");
-      AddAddress (nodes.Get (0), Seconds (0.1), "sim1", "2001:db8:0:2::1/64");
-      RunIp (nodes.Get (0), Seconds (0.11), "-f inet addr add 10.0.0.1/24 dev sim0");
-      RunIp (nodes.Get (0), Seconds (0.11), "-f inet addr add 11.0.0.1/24 dev sim1");
-      RunIp (nodes.Get (0), Seconds (0.11), "link set lo up");
-      RunIp (nodes.Get (0), Seconds (0.11), "link set sim0 up");
-      RunIp (nodes.Get (0), Seconds (0.11), "link set sim1 up");
 
-      AddAddress (nodes.Get (1), Seconds (0.1), "sim0", "2001:db8:0:1::2/64");
-      AddAddress (nodes.Get (1), Seconds (0.1), "sim1", "2001:db8:0:3::2/64");
-      RunIp (nodes.Get (1), Seconds (0.11), "-f inet addr add 10.0.0.2/24 dev sim0");
-      RunIp (nodes.Get (1), Seconds (0.11), "-f inet addr add 12.0.0.1/24 dev sim1");
-      RunIp (nodes.Get (1), Seconds (0.11), "link set lo up");
-      RunIp (nodes.Get (1), Seconds (0.11), "link set sim0 up");
-      RunIp (nodes.Get (1), Seconds (0.11), "link set sim1 up");
-      if (m_debug)
-        {
-          RunIp (nodes.Get (0), Seconds (0.2), "link show");
-          RunIp (nodes.Get (0), Seconds (60.3), "route show table all");
-          RunIp (nodes.Get (1), Seconds (60.3), "route show table all");
-          RunIp (nodes.Get (0), Seconds (0.4), "addr list");
-        }
 
-      routerPort = "sim0";
-    }
 
   if (m_debug)
     {
@@ -243,63 +215,82 @@ DceUmipTestCase::DoRun (void)
 
   //
   // Step 3
+  // Quagga/UMIP Configuration
+  //
+  QuaggaHelper quagga;
+  Mip6dHelper mip6d;
+
+  // HA
+  mip6d.AddHaServedPrefix (ha.Get (0), Ipv6Address ("2001:1:2::"), Ipv6Prefix (48));
+  mip6d.EnableHA (ha);
+  mip6d.Install (ha);
+
+  // MR
+  mip6d.AddMobileNetworkPrefix (mr.Get (0), Ipv6Address ("2001:1:2:5::1"), Ipv6Prefix (64));
+  std::string ha_addr = ha_sim0;
+  ha_addr.replace (ha_addr.find ("/"), 3, "\0  ");
+  mip6d.AddHomeAgentAddress (mr.Get (0), Ipv6Address (ha_addr.c_str ()));
+  mip6d.AddHomeAddress (mr.Get (0), Ipv6Address ("2001:1:2:3::1000"), Ipv6Prefix (64));
+  mip6d.AddEgressInterface (mr.Get (0), "sim0");
+  mip6d.EnableMR (mr);
+  mip6d.Install (mr);
+
+  quagga.EnableRadvd (mr.Get (0), "sim1", "2001:1:2:5::/64");
+  quagga.EnableZebraDebug (mr);
+  quagga.Install (mr);
+
+  // AR
+  quagga.EnableRadvd (ar.Get (0), "sim0", "2001:1:2:3::/64");
+  quagga.EnableHomeAgentFlag (ar.Get (0), "sim0");
+  quagga.EnableRadvd (ar.Get (0), "sim1", "2001:1:2:4::/64");
+  quagga.EnableRadvd (ar.Get (0), "sim2", "2001:1:2:6::/64");
+  quagga.EnableZebraDebug (ar);
+  quagga.Install (ar);
+
+  //
+  // Step 4
   // Set up ping application
   //
-  DceApplicationHelper dce;
-  ApplicationContainer apps;
-  if (m_testname == "ripd"
-      || m_testname == "ospfd"
-      || m_testname == "bgpd")
+  // MNN
+  if (m_debug)
     {
-      if (m_useKernel)
-        {
-          dce.SetBinary ("ping");
-          dce.SetStackSize (1 << 20);
-          dce.ResetArguments ();
-          dce.ResetEnvironment ();
-          dce.AddArgument ("11.0.0.1");
-
-          apps = dce.Install (nodes.Get (1));
-          apps.Start (Seconds (60.0));
-        }
-      else
-        {
-          Ptr<V4Ping> app = CreateObject<V4Ping> ();
-          app->SetAttribute ("Remote", Ipv4AddressValue ("11.0.0.1"));
-          if (m_debug)
-            {
-              app->SetAttribute ("Verbose", BooleanValue (true));
-            }
-          nodes.Get (1)->AddApplication (app);
-          app->SetStartTime (Seconds (60.0));
-          app->SetStopTime (m_maxDuration);
-        }
+      LogComponentEnable ("Ping6Application", LOG_LEVEL_INFO);
     }
-  else
-    {
-      if (m_useKernel)
-        {
-          dce.SetBinary ("ping6");
-          dce.SetStackSize (1 << 20);
-          dce.ResetArguments ();
-          dce.ResetEnvironment ();
-          dce.AddArgument ("2001:db8:0:2::1");
+  // Ping6
+  /* Install IPv4/IPv6 stack */
+  InternetStackHelper internetv6;
+  internetv6.SetIpv4StackInstall (false);
+  internetv6.Install (mnn);
+  internetv6.Install (cn);
 
-          apps = dce.Install (nodes.Get (1));
-          apps.Start (Seconds (60.0));
-        }
-      else
-        {
-          Ptr<Ping6> app = CreateObject<Ping6> ();
-          app->SetAttribute ("RemoteIpv6", Ipv6AddressValue ("2001:db8:0:2::1"));
-          app->SetIfIndex (0);
-          nodes.Get (1)->AddApplication (app);
-          app->SetStartTime (Seconds (60.0));
-          app->SetStopTime (m_maxDuration);
-        }
-    }
+  Ipv6AddressHelper ipv6;
+  Ipv6InterfaceContainer i1 = ipv6.AssignWithoutAddress (mnp_devices.Get (1));
 
-  Config::Connect ("/NodeList/1/DeviceList/0/$ns3::CsmaNetDevice/MacRx",
+  ipv6.NewNetwork (Ipv6Address ("2001:1:2:6::"), 64);
+  Ipv6InterfaceContainer i2 = ipv6.Assign (cn_devices.Get (1));
+
+  Ptr<Ipv6StaticRouting> routing = 0;
+  Ipv6StaticRoutingHelper routingHelper;
+  routing = routingHelper.GetStaticRouting (cn.Get (0)->GetObject<Ipv6> ());
+  routing->SetDefaultRoute (Ipv6Address ("2001:1:2:6::2"), 1, Ipv6Address ("::"), 0);
+
+  uint32_t packetSize = 1024;
+  uint32_t maxPacketCount = 50000000;
+  Time interPacketInterval = Seconds (1.);
+  Ping6Helper ping6;
+
+  ping6.SetLocal (Ipv6Address::GetAny ());
+  ping6.SetRemote (i2.GetAddress (0, 1));
+
+  ping6.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  ping6.SetAttribute ("Interval", TimeValue (interPacketInterval));
+  ping6.SetAttribute ("PacketSize", UintegerValue (packetSize));
+  ApplicationContainer apps = ping6.Install (mnn.Get (0));
+  apps.Start (Seconds (2.0));
+
+
+  // Configure Validity Check Parser
+  Config::Connect ("/NodeList/4/DeviceList/0/$ns3::CsmaNetDevice/MacRx",
                    MakeCallback (&DceUmipTestCase::CsmaRxCallback, this));
   //
   // Step 4
@@ -325,12 +316,6 @@ DceUmipTestCase::DoRun (void)
               (m_useKernel ? "kernel" : "ns3")
               << " stack done. status = " << m_pingStatus);
 
-      ::system (("/bin/mv -f files-0 files-0-" + m_testname + "-" + (m_useKernel ? "kernel" : "ns3")).c_str ());
-      ::system (("/bin/mv -f files-1 files-1-" + m_testname + "-" + (m_useKernel ? "kernel" : "ns3")).c_str ());
-    }
-  else
-    {
-      ::system ("/bin/rm -rf files-*");
     }
 }
 
@@ -354,9 +339,7 @@ DceUmipTestSuite::DceUmipTestSuite ()
   } testPair;
 
   const testPair tests[] = {
-#ifdef FIXME
-    { "radvd", 120, false},
-#endif
+    { "NEMO", 30, true},
   };
 
   ::system ("/bin/rm -rf files-*");
