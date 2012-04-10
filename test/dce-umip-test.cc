@@ -68,10 +68,10 @@ static void AddAddress (Ptr<Node> node, Time at, const char *name, const char *a
   RunIp (node, at, oss.str ());
 }
 
-class DceQuaggaTestCase : public TestCase
+class DceUmipTestCase : public TestCase
 {
 public:
-  DceQuaggaTestCase (std::string testname, Time maxDuration, bool useK);
+  DceUmipTestCase (std::string testname, Time maxDuration, bool useK);
   void CsmaRxCallback (std::string context, Ptr<const Packet> packet);
 private:
   virtual void DoRun (void);
@@ -85,7 +85,7 @@ private:
 };
 
 void
-DceQuaggaTestCase::CsmaRxCallback (std::string context, Ptr<const Packet> originalPacket)
+DceUmipTestCase::CsmaRxCallback (std::string context, Ptr<const Packet> originalPacket)
 {
   if (m_pingStatus)
     {
@@ -125,7 +125,7 @@ DceQuaggaTestCase::CsmaRxCallback (std::string context, Ptr<const Packet> origin
   //  std::cout << context << " " << packet << " protocol " << protocol << std::endl;
 }
 
-DceQuaggaTestCase::DceQuaggaTestCase (std::string testname, Time maxDuration, bool useK)
+DceUmipTestCase::DceUmipTestCase (std::string testname, Time maxDuration, bool useK)
   : TestCase ("Check that process \"" + testname
               + (useK ? "-kernel" : "-ns3") + "\" completes correctly."),
     m_testname (testname),
@@ -136,12 +136,12 @@ DceQuaggaTestCase::DceQuaggaTestCase (std::string testname, Time maxDuration, bo
 {
 }
 void
-DceQuaggaTestCase::Finished (int *pstatus, uint16_t pid, int status)
+DceUmipTestCase::Finished (int *pstatus, uint16_t pid, int status)
 {
   *pstatus = status;
 }
 void
-DceQuaggaTestCase::DoRun (void)
+DceUmipTestCase::DoRun (void)
 {
   //
   //  Step 1
@@ -235,53 +235,10 @@ DceQuaggaTestCase::DoRun (void)
 
       routerPort = "sim0";
     }
-  QuaggaHelper quagga;
-  if (m_testname == "ripd")
-    {
-      quagga.EnableRip (nodes, routerPort.c_str ());
-    }
-  else if (m_testname == "ripngd")
-    {
-      quagga.EnableRipng (nodes, routerPort.c_str ());
-    }
-  else if (m_testname == "ospfd")
-    {
-      quagga.EnableOspf (nodes, "10.0.0.0/24");
-    }
-  else if (m_testname == "ospf6d")
-    {
-      quagga.EnableOspf6 (nodes, routerPort.c_str ());
-    }
-  else if (m_testname == "bgpd")
-    {
-      quagga.EnableBgp (nodes);
-      quagga.BgpAddNeighbor (nodes.Get (0), "10.0.0.2", quagga.GetAsn (nodes.Get (1)));
-      quagga.BgpAddNeighbor (nodes.Get (1), "10.0.0.1", quagga.GetAsn (nodes.Get (0)));
-    }
-  else if (m_testname == "bgpd_v6")
-    {
-      quagga.EnableBgp (nodes);
-      quagga.BgpAddNeighbor (nodes.Get (0), "2001:db8:0:1::2", quagga.GetAsn (nodes.Get (1)));
-      quagga.BgpAddNeighbor (nodes.Get (1), "2001:db8:0:1::1", quagga.GetAsn (nodes.Get (0)));
-    }
-  else if (m_testname == "radvd")
-    {
-      quagga.EnableRadvd (nodes.Get (0), routerPort.c_str (), "2001:db8:0:1::/64");
-    }
 
   if (m_debug)
     {
-      quagga.EnableRipDebug (nodes);
-      quagga.EnableRipngDebug (nodes);
-      quagga.EnableOspfDebug (nodes);
-      quagga.EnableOspf6Debug (nodes);
-      quagga.EnableZebraDebug (nodes.Get (0));
-    }
-  quagga.Install (nodes);
-
-  if (m_debug)
-    {
-      csma.EnablePcapAll ("dce-quagga-test-" + m_testname + "-" + (m_useKernel ? "kern" : "ns3"));
+      csma.EnablePcapAll ("dce-umip-test-" + m_testname + "-" + (m_useKernel ? "kern" : "ns3"));
     }
 
   //
@@ -343,7 +300,7 @@ DceQuaggaTestCase::DoRun (void)
     }
 
   Config::Connect ("/NodeList/1/DeviceList/0/$ns3::CsmaNetDevice/MacRx",
-                   MakeCallback (&DceQuaggaTestCase::CsmaRxCallback, this));
+                   MakeCallback (&DceUmipTestCase::CsmaRxCallback, this));
   //
   // Step 4
   // Now It's ready to GO!
@@ -360,11 +317,11 @@ DceQuaggaTestCase::DoRun (void)
   // Step 5
   // Vetify the test
   //
-  NS_TEST_ASSERT_MSG_EQ (m_pingStatus, true, "Quagga test " << m_testname  << " with " <<
+  NS_TEST_ASSERT_MSG_EQ (m_pingStatus, true, "Umip test " << m_testname  << " with " <<
                          (m_useKernel ? "kernel" : "ns3") << " did not return successfully: " << g_testError);
   if (m_debug)
     {
-      OUTPUT ("Quagga test " << m_testname << " with " <<
+      OUTPUT ("Umip test " << m_testname << " with " <<
               (m_useKernel ? "kernel" : "ns3")
               << " stack done. status = " << m_pingStatus);
 
@@ -377,17 +334,17 @@ DceQuaggaTestCase::DoRun (void)
     }
 }
 
-static class DceQuaggaTestSuite : public TestSuite
+static class DceUmipTestSuite : public TestSuite
 {
 public:
-  DceQuaggaTestSuite ();
+  DceUmipTestSuite ();
 private:
 } g_processTests;
 //
 
 
-DceQuaggaTestSuite::DceQuaggaTestSuite ()
-  : TestSuite ("dce-quagga", UNIT)
+DceUmipTestSuite::DceUmipTestSuite ()
+  : TestSuite ("dce-umip", UNIT)
 {
   typedef struct
   {
@@ -400,37 +357,12 @@ DceQuaggaTestSuite::DceQuaggaTestSuite ()
 #ifdef FIXME
     { "radvd", 120, false},
 #endif
-    { "radvd", 120, true},
-#ifdef FIXME
-    { "ripd", 120, false},
-#endif
-    { "ripd", 120, true},
-#ifdef FIXME
-    { "ripngd", 120, false},
-#endif
-    { "ripngd", 120, true},
-#ifdef FIXME
-    { "ospfd", 120, false},
-#endif
-    { "ospfd", 120, true},
-#ifdef FIXME
-    { "ospf6d", 120, false},
-#endif
-    { "ospf6d", 120, true},
-#ifdef FIXME
-    { "bgpd", 120, false},
-#endif
-    { "bgpd", 120, true},
-#ifdef FIXME
-    { "bgpd_v6", 120, false},
-#endif
-    { "bgpd_v6", 120, true},
   };
 
   ::system ("/bin/rm -rf files-*");
   for (unsigned int i = 0; i < sizeof(tests) / sizeof(testPair); i++)
     {
-      AddTestCase (new DceQuaggaTestCase (std::string (tests[i].name),
+      AddTestCase (new DceUmipTestCase (std::string (tests[i].name),
                                           Seconds (tests[i].duration), tests[i].useKernel));
     }
 }
