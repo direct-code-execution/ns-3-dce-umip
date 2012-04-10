@@ -20,7 +20,10 @@ mv a src/internet/model/ipv6-l3-protocol.cc
 cd ..
 
 # mod ns-3-dce (FIXME)
-hg clone http://202.249.37.8/ical/ns-3-dce-patches/
+#hg clone http://202.249.37.8/ical/ns-3-dce-patches/
+cd ns-3-dce-patches
+hg pull -u
+cd ..
 cd ns-3-dce
 patch -p1 < ../ns-3-dce-patches/120410-dce-umip-support.patch
 ./waf
@@ -29,6 +32,9 @@ cd ..
 
 # mod ns-3-linux (FIXME)
 hg clone http://202.249.37.8/ical/ns-3-linux-patches/
+cd ns-3-linux-patches
+hg pull -u
+cd ..
 cd ns-3-linux
 patch -p1 < ../ns-3-linux-patches/120410-linux-umip-support.patch
 make clean
