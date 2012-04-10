@@ -26,6 +26,7 @@ hg pull -u
 cd ..
 cd ns-3-dce
 patch -p1 < ../ns-3-dce-patches/120410-dce-umip-support.patch
+. ./utils/setenv.sh
 ./waf configure --prefix=`pwd`/../build --verbose --enable-kernel-stack=`pwd`/../ns-3-linux
 ./waf
 ./waf install
