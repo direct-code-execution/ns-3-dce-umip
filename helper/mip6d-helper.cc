@@ -28,7 +28,7 @@
 
 namespace ns3 {
 
-class Mip6dConfig: public Object
+class Mip6dConfig : public Object
 {
 private:
   static int index;
@@ -49,16 +49,16 @@ public:
   {
   }
 
-  static TypeId 
+  static TypeId
   GetTypeId (void)
   {
     static TypeId tid = TypeId ("ns3::Mip6dConfig")
       .SetParent<Object> ()
       .AddConstructor<Mip6dConfig> ()
-      ;
+    ;
     return tid;
   }
-  TypeId 
+  TypeId
   GetInstanceTypeId (void) const
   {
     return GetTypeId ();
@@ -95,7 +95,7 @@ Mip6dHelper::Mip6dHelper ()
 {
 }
 
-void 
+void
 Mip6dHelper::SetAttribute (std::string name, const AttributeValue &value)
 {
 }
@@ -104,9 +104,9 @@ Mip6dHelper::SetAttribute (std::string name, const AttributeValue &value)
 void
 Mip6dHelper::EnableHA (NodeContainer nodes)
 {
-  for (uint32_t i = 0; i < nodes.GetN (); i ++)
+  for (uint32_t i = 0; i < nodes.GetN (); i++)
     {
-      Ptr<Mip6dConfig> mip6d_conf = nodes.Get (i)->GetObject<Mip6dConfig>();
+      Ptr<Mip6dConfig> mip6d_conf = nodes.Get (i)->GetObject<Mip6dConfig> ();
       if (!mip6d_conf)
         {
           mip6d_conf = CreateObject<Mip6dConfig> ();
@@ -119,10 +119,10 @@ Mip6dHelper::EnableHA (NodeContainer nodes)
 }
 
 void
-Mip6dHelper::AddHaServedPrefix (Ptr<Node> node, 
+Mip6dHelper::AddHaServedPrefix (Ptr<Node> node,
                                 Ipv6Address prefix, Ipv6Prefix plen)
 {
-  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig>();
+  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig> ();
   if (!mip6d_conf)
     {
       mip6d_conf = CreateObject<Mip6dConfig> ();
@@ -143,9 +143,9 @@ void
 Mip6dHelper::EnableMR (NodeContainer nodes)
 {
   //  for (uint32_t i = 0; i < nodes.GetN (); i++)
-  for (uint32_t i = 0; i < nodes.GetN (); i ++)
+  for (uint32_t i = 0; i < nodes.GetN (); i++)
     {
-      Ptr<Mip6dConfig> mip6d_conf = nodes.Get (i)->GetObject<Mip6dConfig>();
+      Ptr<Mip6dConfig> mip6d_conf = nodes.Get (i)->GetObject<Mip6dConfig> ();
       if (!mip6d_conf)
         {
           mip6d_conf = CreateObject<Mip6dConfig> ();
@@ -158,10 +158,10 @@ Mip6dHelper::EnableMR (NodeContainer nodes)
 }
 
 void
-Mip6dHelper::AddMobileNetworkPrefix (Ptr<Node> node, 
-                                Ipv6Address prefix, Ipv6Prefix plen)
+Mip6dHelper::AddMobileNetworkPrefix (Ptr<Node> node,
+                                     Ipv6Address prefix, Ipv6Prefix plen)
 {
-  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig>();
+  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig> ();
   if (!mip6d_conf)
     {
       mip6d_conf = CreateObject<Mip6dConfig> ();
@@ -180,14 +180,14 @@ Mip6dHelper::AddMobileNetworkPrefix (Ptr<Node> node,
 void
 Mip6dHelper::AddEgressInterface (Ptr<Node> node, const char *ifname)
 {
-  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig>();
+  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig> ();
   if (!mip6d_conf)
     {
       mip6d_conf = CreateObject<Mip6dConfig> ();
       node->AggregateObject (mip6d_conf);
     }
 
-  mip6d_conf->m_mr_egress_if->push_back (std::string(ifname));
+  mip6d_conf->m_mr_egress_if->push_back (std::string (ifname));
 
   return;
 }
@@ -195,7 +195,7 @@ Mip6dHelper::AddEgressInterface (Ptr<Node> node, const char *ifname)
 void
 Mip6dHelper::AddHomeAgentAddress (Ptr<Node> node, Ipv6Address addr)
 {
-  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig>();
+  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig> ();
   if (!mip6d_conf)
     {
       mip6d_conf = CreateObject<Mip6dConfig> ();
@@ -210,10 +210,10 @@ Mip6dHelper::AddHomeAgentAddress (Ptr<Node> node, Ipv6Address addr)
 }
 
 void
-Mip6dHelper::AddHomeAddress (Ptr<Node> node, 
+Mip6dHelper::AddHomeAddress (Ptr<Node> node,
                              Ipv6Address addr, Ipv6Prefix plen)
 {
-  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig>();
+  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig> ();
   if (!mip6d_conf)
     {
       mip6d_conf = CreateObject<Mip6dConfig> ();
@@ -232,9 +232,9 @@ Mip6dHelper::AddHomeAddress (Ptr<Node> node,
 void
 Mip6dHelper::EnableDSMIP6 (NodeContainer nodes)
 {
-  for (uint32_t i = 0; i < nodes.GetN (); i ++)
+  for (uint32_t i = 0; i < nodes.GetN (); i++)
     {
-      Ptr<Mip6dConfig> mip6d_conf = nodes.Get (i)->GetObject<Mip6dConfig>();
+      Ptr<Mip6dConfig> mip6d_conf = nodes.Get (i)->GetObject<Mip6dConfig> ();
       if (!mip6d_conf)
         {
           mip6d_conf = CreateObject<Mip6dConfig> ();
@@ -249,9 +249,9 @@ Mip6dHelper::EnableDSMIP6 (NodeContainer nodes)
 void
 Mip6dHelper::EnableDebug (NodeContainer nodes)
 {
-  for (uint32_t i = 0; i < nodes.GetN (); i ++)
+  for (uint32_t i = 0; i < nodes.GetN (); i++)
     {
-      Ptr<Mip6dConfig> mip6d_conf = nodes.Get (i)->GetObject<Mip6dConfig>();
+      Ptr<Mip6dConfig> mip6d_conf = nodes.Get (i)->GetObject<Mip6dConfig> ();
       if (!mip6d_conf)
         {
           mip6d_conf = CreateObject<Mip6dConfig> ();
@@ -265,9 +265,9 @@ Mip6dHelper::EnableDebug (NodeContainer nodes)
 void
 Mip6dHelper::UseManualConfig (NodeContainer nodes)
 {
-  for (uint32_t i = 0; i < nodes.GetN (); i ++)
+  for (uint32_t i = 0; i < nodes.GetN (); i++)
     {
-      Ptr<Mip6dConfig> mip6d_conf = nodes.Get (i)->GetObject<Mip6dConfig>();
+      Ptr<Mip6dConfig> mip6d_conf = nodes.Get (i)->GetObject<Mip6dConfig> ();
       if (!mip6d_conf)
         {
           mip6d_conf = new Mip6dConfig ();
@@ -281,7 +281,7 @@ Mip6dHelper::UseManualConfig (NodeContainer nodes)
 void
 Mip6dHelper::GenerateConfig (Ptr<Node> node)
 {
-  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig>();
+  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig> ();
 
   if (mip6d_conf->m_usemanualconf)
     {
@@ -296,7 +296,7 @@ Mip6dHelper::GenerateConfig (Ptr<Node> node)
   conf_dir << "/etc/";
   ::mkdir (conf_dir.str ().c_str (), S_IRWXU | S_IRWXG);
 
-  conf_file << conf_dir.str() << "/mip6d.conf";
+  conf_file << conf_dir.str () << "/mip6d.conf";
   std::ofstream conf;
   conf.open (conf_file.str ().c_str ());
 
@@ -308,17 +308,17 @@ Mip6dHelper::GenerateConfig (Ptr<Node> node)
            << "#BindingAclPolicy 2001:1:2:3::1000 (2001:1:2:5::/64) allow;" << std::endl
            << "DefaultBindingAclPolicy allow;" << std::endl;
 
-    
+
 
       conf << "HaServedPrefix " << mip6d_conf->m_ha_served_pfx << ";" << std::endl;
       if (mip6d_conf->m_dsmip6enable)
         {
-          conf << "HaAcceptDsmip6 enabled;"<< std::endl;
+          conf << "HaAcceptDsmip6 enabled;" << std::endl;
         }
       if (mip6d_conf->m_dsmip6enable)
         {
           conf << "# The IPv4 address of the HA or the HA name can be given." << std::endl;
-          conf << "HomeAgentV4Address 192.168.10.1;"<< std::endl;
+          conf << "HomeAgentV4Address 192.168.10.1;" << std::endl;
         }
     }
   else if (mip6d_conf->m_mrenable)
@@ -335,7 +335,7 @@ Mip6dHelper::GenerateConfig (Ptr<Node> node)
            << "MnDiscardHaParamProb enabled;" << std::endl
            << "MobRtrUseExplicitMode enabled;" << std::endl;
 
-      for (std::vector<std::string>::iterator i = mip6d_conf->m_mr_egress_if->begin (); 
+      for (std::vector<std::string>::iterator i = mip6d_conf->m_mr_egress_if->begin ();
            i != mip6d_conf->m_mr_egress_if->end (); ++i)
         {
           if (mip6d_conf->m_dsmip6enable)
@@ -354,19 +354,19 @@ Mip6dHelper::GenerateConfig (Ptr<Node> node)
 
       conf << "MnRouterProbes 1;" << std::endl
            << "MnHomeLink \"sim0\" {" << std::endl;
-          if (mip6d_conf->m_dsmip6enable)
-            {
-              conf << "# The IPv4 address of the HA or the HA name can be given." << std::endl
-                   << "# If both are given, the HomeAgentName field is ignored." << std::endl
-                   << "HomeAgentV4Address 192.168.10.1;" << std::endl
-                   << "# HomeAgentName <FQDN of the Home Agent>;" << std::endl;
-                }
+      if (mip6d_conf->m_dsmip6enable)
+        {
+          conf << "# The IPv4 address of the HA or the HA name can be given." << std::endl
+               << "# If both are given, the HomeAgentName field is ignored." << std::endl
+               << "HomeAgentV4Address 192.168.10.1;" << std::endl
+               << "# HomeAgentName <FQDN of the Home Agent>;" << std::endl;
+        }
 
-          conf << "	IsMobRtr enabled;" << std::endl
-               << "	HomeAgentAddress " << mip6d_conf->m_mr_ha_addr << ";" << std::endl;
+      conf << "	IsMobRtr enabled;" << std::endl
+           << "	HomeAgentAddress " << mip6d_conf->m_mr_ha_addr << ";" << std::endl;
 
       conf << "	HomeAddress " << mip6d_conf->m_mr_home_addr << "(";
-      for (std::vector<std::string>::iterator i = mip6d_conf->m_mr_mobile_pfx->begin (); 
+      for (std::vector<std::string>::iterator i = mip6d_conf->m_mr_mobile_pfx->begin ();
            i != mip6d_conf->m_mr_mobile_pfx->end (); ++i)
         {
           if (i != mip6d_conf->m_mr_mobile_pfx->begin ())
@@ -420,12 +420,12 @@ Mip6dHelper::Install (NodeContainer c)
 }
 
 ApplicationContainer
-Mip6dHelper::InstallPriv (Ptr<Node> node) 
+Mip6dHelper::InstallPriv (Ptr<Node> node)
 {
   DceApplicationHelper process;
   ApplicationContainer apps;
 
-  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig>();
+  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig> ();
   if (!mip6d_conf)
     {
       mip6d_conf = new Mip6dConfig ();
@@ -436,9 +436,9 @@ Mip6dHelper::InstallPriv (Ptr<Node> node)
   process.ResetArguments ();
   process.SetBinary ("mip6d");
   process.ParseArguments ("-c /etc/mip6d.conf -d 10");
-  process.SetStackSize (1<<16);
+  process.SetStackSize (1 << 16);
   apps.Add (process.Install (node));
-  apps.Get(0)->SetStartTime (Seconds (1.0 + 0.01 * node->GetId ()));
+  apps.Get (0)->SetStartTime (Seconds (1.0 + 0.01 * node->GetId ()));
   node->AddApplication (apps.Get (0));
 
   return apps;

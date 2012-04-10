@@ -74,7 +74,7 @@ public:
   ApplicationContainer Install (std::string nodeName);
 
   /**
-   * \brief Configure ping applications attribute 
+   * \brief Configure ping applications attribute
    * \param name   attribute's name
    * \param value  attribute's value
    */
@@ -82,15 +82,15 @@ public:
 
   // For HA
   void EnableHA (NodeContainer nodes);
-  void AddHaServedPrefix (Ptr<Node> node, 
+  void AddHaServedPrefix (Ptr<Node> node,
                           Ipv6Address prefix, Ipv6Prefix plen);
 
   // For MR
-  void AddMobileNetworkPrefix (Ptr<Node> node, 
+  void AddMobileNetworkPrefix (Ptr<Node> node,
                                Ipv6Address prefix, Ipv6Prefix plen);
   void AddEgressInterface (Ptr<Node> node, const char *ifname);
   void AddHomeAgentAddress (Ptr<Node> node, Ipv6Address addr);
-  void AddHomeAddress (Ptr<Node> node, 
+  void AddHomeAddress (Ptr<Node> node,
                        Ipv6Address addr, Ipv6Prefix plen);
   void EnableMR (NodeContainer nodes);
   void EnableDSMIP6 (NodeContainer nodes);

@@ -4,16 +4,16 @@
 // NEMO (Network Mobility) simulation with umip (mip6d) and net-next-2.6.
 //
 // UMIP: http://www.umip.org/git/umip.git
-// patchset: 0daa3924177f326e26ed8bbb9dc9f0cdf8a51618  
+// patchset: 0daa3924177f326e26ed8bbb9dc9f0cdf8a51618
 // build:  CFLAGS="-fPIC -g" CXXFLAGS="-fPIC -g" LDFLAGS="-pie -g" ./configure --enable-vt --with-cflags="-DRT_DEBUG_LEVEL=1" --with-builtin-crypto
 //
 // Simulation Topology:
 // Scenario: MR and MNN moves from under AR1 to AR2 with Care-of-Address
 //           alternation. during movement, MNN keeps ping6 to CN.
-// 
-//                                    +-----------+       
-//                                    |    HA     |       
-//                                    +-----------+       
+//
+//                                    +-----------+
+//                                    |    HA     |
+//                                    +-----------+
 //                                         |sim0
 //                              +----------+------------+
 //                              |sim0                   |sim0
@@ -22,12 +22,12 @@
 //      +--------+         +---+----+              +----+---+
 //                             |sim1                    |sim1
 //                             |                        |
-// 
+//
 //                               sim0                     sim0
 //                        +----+------+  (Movement) +----+-----+
-//                        |    MR     |   <=====>   |    MR    |   
+//                        |    MR     |   <=====>   |    MR    |
 //                        +-----------+             +----------+
-//                             |sim1                     |sim1 
+//                             |sim1                     |sim1
 //                        +---------+               +---------+
 //                        |   MNN   |               |   MNN   |
 //                        +---------+               +---------+
@@ -53,9 +53,9 @@ static void RunIp (Ptr<Node> node, Time at, std::string str)
   DceApplicationHelper process;
   ApplicationContainer apps;
   process.SetBinary ("ip");
-  process.SetStackSize (1<<16);
-  process.ResetArguments();
-  process.ParseArguments(str.c_str ());
+  process.SetStackSize (1 << 16);
+  process.ResetArguments ();
+  process.ParseArguments (str.c_str ());
   apps = process.Install (node);
   apps.Start (at);
 }
@@ -111,7 +111,7 @@ int main (int argc, char *argv[])
   mobility.PushReferenceMobilityModel (mr.Get (0));
   Ptr<MobilityModel> parentMobility = mr.Get (0)->GetObject<MobilityModel> ();
   Vector pos =  parentMobility->GetPosition ();
-  Ptr<ListPositionAllocator> positionAllocMnn = 
+  Ptr<ListPositionAllocator> positionAllocMnn =
     CreateObject<ListPositionAllocator> ();
   pos.x = 5;
   pos.y = 20;
@@ -143,8 +143,8 @@ int main (int argc, char *argv[])
   //  processManager.SetLoader ("ns3::DlmLoaderFactory");
   processManager.SetTaskManagerAttribute ("FiberManagerType",
                                           EnumValue (0));
-  processManager.SetNetworkStack("ns3::LinuxSocketFdFactory",
-				 "Library", StringValue ("libnet-next-2.6.so"));
+  processManager.SetNetworkStack ("ns3::LinuxSocketFdFactory",
+                                  "Library", StringValue ("libnet-next-2.6.so"));
   processManager.Install (mr);
   processManager.Install (ha);
   processManager.Install (ar);
@@ -192,7 +192,7 @@ int main (int argc, char *argv[])
   RunIp (ar.Get (1), Seconds (0.15), "route show table all");
 
   // For MR
-  for (uint32_t i = 0; i< mr.GetN (); i++)
+  for (uint32_t i = 0; i < mr.GetN (); i++)
     {
       RunIp (mr.Get (i), Seconds (0.11), "link set lo up");
       RunIp (mr.Get (i), Seconds (0.11), "link set sim0 up");
@@ -221,9 +221,9 @@ int main (int argc, char *argv[])
     mip6d.Install (ha);
 
     // MR
-    for (uint32_t i = 0; i< mr.GetN (); i++)
+    for (uint32_t i = 0; i < mr.GetN (); i++)
       {
-        mip6d.AddMobileNetworkPrefix (mr.Get (i), Ipv6Address (mnps->at (i).c_str()), Ipv6Prefix (64));
+        mip6d.AddMobileNetworkPrefix (mr.Get (i), Ipv6Address (mnps->at (i).c_str ()), Ipv6Prefix (64));
         std::string ha_addr = ha_sim0;
         ha_addr.replace (ha_addr.find ("/"), 3, "\0  ");
         mip6d.AddHomeAgentAddress (mr.Get (i), Ipv6Address (ha_addr.c_str ()));

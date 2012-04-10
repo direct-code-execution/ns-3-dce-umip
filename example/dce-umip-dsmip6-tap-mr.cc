@@ -4,13 +4,13 @@
 // NEMO (Network Mobility) simulation with umip (mip6d) and net-next-2.6.
 //
 // UMIP: http://www.umip.org/git/umip.git
-// patchset: 0daa3924177f326e26ed8bbb9dc9f0cdf8a51618  
+// patchset: 0daa3924177f326e26ed8bbb9dc9f0cdf8a51618
 // build:  CFLAGS="-fPIC -g" CXXFLAGS="-fPIC -g" LDFLAGS="-pie -g" ./configure --enable-vt --with-cflags="-DRT_DEBUG_LEVEL=1" --with-builtin-crypto
 //
 // Simulation Topology:
 // Scenario: MR and MNN moves from under AR1 to AR2 with Care-of-Address
 //           alternation. during movement, MNN keeps ping6 to CN.
-// 
+//
 //                          The Internet
 //                             |
 //                        +----+------+
@@ -20,16 +20,16 @@
 //                        +----+------+
 //                        |tap(bridge)|        In Simulator
 //                        +-----------+
-//                             |    
-//                         (IPv4 only) 
-//                               sim0  
+//                             |
+//                         (IPv4 only)
+//                               sim0
 //                        +----+------+
 //                        |    MR     |
 //                        +-----------+
-//                             |sim1   
-//                        +---------+  
-//                        |   MNN   |  
-//                        +---------+  
+//                             |sim1
+//                        +---------+
+//                        |   MNN   |
+//                        +---------+
 
 #include "ns3/dce-module.h"
 #include "ns3/helper-module.h"
@@ -48,9 +48,9 @@ static void RunIp (Ptr<Node> node, Time at, std::string str)
   DceApplicationHelper process;
   ApplicationContainer apps;
   process.SetBinary ("build/debug/ip");
-  process.SetStackSize (1<<16);
-  process.ResetArguments();
-  process.ParseArguments(str.c_str ());
+  process.SetStackSize (1 << 16);
+  process.ResetArguments ();
+  process.ParseArguments (str.c_str ());
   apps = process.Install (node);
   apps.Start (at);
 }
@@ -82,7 +82,7 @@ int main (int argc, char *argv[])
     {
       GlobalValue::Bind ("SimulatorImplementationType", StringValue ("ns3::RealtimeSimulatorImpl"));
       DynamicCast<RealtimeSimulatorImpl> (Simulator::GetImplementation ())->SetAttribute
-        ("SynchronizationMode", EnumValue (RealtimeSimulatorImpl::SYNC_BEST_EFFORT));
+              ("SynchronizationMode", EnumValue (RealtimeSimulatorImpl::SYNC_BEST_EFFORT));
     }
 
   NodeContainer mr, tapHost;
@@ -98,7 +98,7 @@ int main (int argc, char *argv[])
   mobility.PushReferenceMobilityModel (mr.Get (0));
   Ptr<MobilityModel> parentMobility = mr.Get (0)->GetObject<MobilityModel> ();
   Vector pos =  parentMobility->GetPosition ();
-  Ptr<ListPositionAllocator> positionAllocMnn = 
+  Ptr<ListPositionAllocator> positionAllocMnn =
     CreateObject<ListPositionAllocator> ();
   pos.x = 5;
   pos.y = 20;
@@ -125,8 +125,8 @@ int main (int argc, char *argv[])
   csma.EnablePcapAll ("dsmip6d-tap-mr");
 
   DceManagerHelper processManager;
-  processManager.SetNetworkStack("ns3::LinuxSocketFdFactory",
-				 "Library", StringValue ("libnet-next-2.6.so"));
+  processManager.SetNetworkStack ("ns3::LinuxSocketFdFactory",
+                                  "Library", StringValue ("libnet-next-2.6.so"));
   processManager.Install (mr);
 
   // Prefix configuration
@@ -140,7 +140,7 @@ int main (int argc, char *argv[])
   ApplicationContainer apps;
   QuaggaHelper quagga;
   Mip6dHelper mip6d;
-  for (uint32_t i = 0; i< mr.GetN (); i++)
+  for (uint32_t i = 0; i < mr.GetN (); i++)
     {
       RunIp (mr.Get (i), Seconds (0.11), "link set sim0 up");
       RunIp (mr.Get (i), Seconds (3.0), "link set ip6tnl0 up");
@@ -151,7 +151,7 @@ int main (int argc, char *argv[])
       RunIp (mr.Get (i), Seconds (4.2), "addr list");
       RunIp (mr.Get (i), Seconds (20.0), "route show table all");
 
-      mip6d.AddMobileNetworkPrefix (mr.Get (i), Ipv6Address (mnp1.c_str()), Ipv6Prefix (64));
+      mip6d.AddMobileNetworkPrefix (mr.Get (i), Ipv6Address (mnp1.c_str ()), Ipv6Prefix (64));
       mip6d.AddHomeAgentAddress (mr.Get (i), Ipv6Address (ha_addr.c_str ()));
       mip6d.AddHomeAddress (mr.Get (i), Ipv6Address (mr_hoa.c_str ()), Ipv6Prefix (64));
       mip6d.AddEgressInterface (mr.Get (i), "sim0");
@@ -170,7 +170,7 @@ int main (int argc, char *argv[])
       TapBridgeHelper tapBridge (Ipv4Address ("0.0.0.1"));
       tapBridge.SetAttribute ("Mode", StringValue ("UseLocal"));
       tapBridge.SetAttribute ("DeviceName", StringValue ("exttap"));
-      tapBridge.Install (tapHost.Get(0), tapDevs.Get (0));
+      tapBridge.Install (tapHost.Get (0), tapDevs.Get (0));
     }
 
   // MNN
