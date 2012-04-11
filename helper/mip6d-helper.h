@@ -98,6 +98,7 @@ public:
   // Common
   void EnableDebug (NodeContainer nodes);
   void UseManualConfig (NodeContainer nodes);
+  void SetBinary (NodeContainer nodes, std::string binary);
 
 private:
   /**

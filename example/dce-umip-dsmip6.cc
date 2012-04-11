@@ -141,6 +141,8 @@ int main (int argc, char *argv[])
 
   DceManagerHelper processManager;
   //  processManager.SetLoader ("ns3::DlmLoaderFactory");
+  processManager.SetTaskManagerAttribute ("FiberManagerType",
+                                          EnumValue (0));
   processManager.SetNetworkStack ("ns3::LinuxSocketFdFactory",
                                   "Library", StringValue ("libnet-next-2.6.so"));
   processManager.Install (mr);
@@ -225,6 +227,7 @@ int main (int argc, char *argv[])
     mip6d.EnableHA (ha);
     mip6d.EnableDSMIP6 (ha);
     mip6d.EnableDebug (ha);
+    mip6d.SetBinary (ha, "mip6d.dsmip");
     mip6d.Install (ha);
 
     // MR
@@ -239,6 +242,7 @@ int main (int argc, char *argv[])
       }
     mip6d.EnableMR (mr);
     mip6d.EnableDSMIP6 (mr);
+    mip6d.SetBinary (mr, "mip6d.dsmip");
     mip6d.Install (mr);
 
     quagga.EnableRadvd (mr.Get (0), "sim1", "2001:1:2:5::/64");

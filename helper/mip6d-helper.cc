@@ -41,7 +41,8 @@ public:
       m_debug (false),
       m_usemanualconf (false),
       m_ha_served_pfx (""),
-      m_dsmip6enable (false)
+      m_dsmip6enable (false),
+      m_binary ("mip6d")
   {
     m_mr_mobile_pfx = new std::vector<std::string> ();
     m_mr_egress_if = new std::vector<std::string> ();
@@ -70,6 +71,7 @@ public:
   bool m_debug;
   bool m_usemanualconf;
   bool m_dsmip6enable;
+  std::string m_binary;
   std::string m_ha_served_pfx;
   std::vector<std::string> *m_mr_mobile_pfx;
   std::vector<std::string> *m_mr_egress_if;
@@ -293,6 +295,22 @@ Mip6dHelper::UseManualConfig (NodeContainer nodes)
 }
 
 void
+Mip6dHelper::SetBinary (NodeContainer nodes, std::string binary)
+{
+  for (uint32_t i = 0; i < nodes.GetN (); i++)
+    {
+      Ptr<Mip6dConfig> mip6d_conf = nodes.Get (i)->GetObject<Mip6dConfig> ();
+      if (!mip6d_conf)
+        {
+          mip6d_conf = new Mip6dConfig ();
+          nodes.Get (i)->AggregateObject (mip6d_conf);
+        }
+      mip6d_conf->m_binary = binary;
+    }
+  return;
+}
+
+void
 Mip6dHelper::GenerateConfig (Ptr<Node> node)
 {
   Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig> ();
@@ -448,7 +466,7 @@ Mip6dHelper::InstallPriv (Ptr<Node> node)
   GenerateConfig (node);
 
   process.ResetArguments ();
-  process.SetBinary ("mip6d");
+  process.SetBinary (mip6d_conf->m_binary);
   process.ParseArguments ("-c /etc/mip6d.conf -d 10");
   process.SetStackSize (1 << 16);
   apps.Add (process.Install (node));

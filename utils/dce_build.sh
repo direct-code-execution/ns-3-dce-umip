@@ -50,7 +50,8 @@ make
 cd ..
 
 # build umip-dsmip6
-wget ftp://ftp.linux-ipv6.org/pub/usagi/patch/mipv6/umip-0.4/daemon/tarball/mipv6-daemon-umip-0.4.tar.gz
+##wget ftp://ftp.linux-ipv6.org/pub/usagi/patch/mipv6/umip-0.4/daemon/tarball/mipv6-daemon-umip-0.4.tar.gz
+wget http://repository.timesys.com/buildsources/m/mipv6-daemon-umip/mipv6-daemon-umip-0.4/mipv6-daemon-umip-0.4.tar.gz
 wget http://software.nautilus6.org/packages/DSMIP/umip-dsmip-20080530.tar.bz2
 wget http://software.nautilus6.org/packages/DSMIP/umip-dsmip-0.2-patches.tar.bz2
 tar xfz mipv6-daemon-umip-0.4.tar.gz
@@ -87,7 +88,7 @@ mv a libmissing/inet6_rth_getaddr.c
 autoreconf -i
 CFLAGS="-fPIC -g -I`pwd`/../ns-3-linux/net-next-2.6/include" CXXFLAGS="-fPIC -g" LDFLAGS="-pie -g" ./configure --enable-vt --with-builtin-crypto
 make
-cp -f src/mip6d ../ns-3-dce/build/bin_dce/
+cp -f src/mip6d ../ns-3-dce/build/bin_dce/mip6d.dsmip
 cd ..
 
 # build udhcpd
