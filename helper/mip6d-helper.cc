@@ -22,6 +22,7 @@
 #include "mip6d-helper.h"
 #include "ns3/dce-application-helper.h"
 #include "ns3/names.h"
+#include "ns3/linux-socket-fd-factory.h"
 #include <fstream>
 #include <map>
 #include <sys/stat.h>
@@ -113,6 +114,14 @@ Mip6dHelper::EnableHA (NodeContainer nodes)
           nodes.Get (i)->AggregateObject (mip6d_conf);
         }
       mip6d_conf->m_haenable = true;
+
+      Ptr<LinuxSocketFdFactory> kern = nodes.Get (i)->GetObject<LinuxSocketFdFactory>();
+      Simulator::ScheduleWithContext (nodes.Get (i)->GetId (), Seconds (0.1),
+                                      MakeEvent (&LinuxSocketFdFactory::Set, kern,
+                                                 ".net.ipv6.conf.all.forwarding", "1"));
+      Simulator::ScheduleWithContext (nodes.Get (i)->GetId (), Seconds (0.1),
+                                      MakeEvent (&LinuxSocketFdFactory::Set, kern,
+                                                 ".net.ipv6.conf.all.proxy_ndp", "1"));
     }
 
   return;
@@ -152,6 +161,11 @@ Mip6dHelper::EnableMR (NodeContainer nodes)
           nodes.Get (i)->AggregateObject (mip6d_conf);
         }
       mip6d_conf->m_mrenable = true;
+
+      Ptr<LinuxSocketFdFactory> kern = nodes.Get (i)->GetObject<LinuxSocketFdFactory>();
+      Simulator::ScheduleWithContext (nodes.Get (i)->GetId (), Seconds (0.1),
+                                      MakeEvent (&LinuxSocketFdFactory::Set, kern,
+                                                 ".net.ipv6.conf.all.forwarding", "1"));
     }
 
   return;

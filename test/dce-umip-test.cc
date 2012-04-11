@@ -246,6 +246,10 @@ DceUmipTestCase::DoRun (void)
   quagga.EnableRadvd (ar.Get (0), "sim2", "2001:1:2:6::/64");
   quagga.EnableZebraDebug (ar);
   quagga.Install (ar);
+  Ptr<LinuxSocketFdFactory> kern = ar.Get (0)->GetObject<LinuxSocketFdFactory>();
+  Simulator::ScheduleWithContext (ar.Get (0)->GetId (), Seconds (0.1),
+                                  MakeEvent (&LinuxSocketFdFactory::Set, kern,
+                                             ".net.ipv6.conf.all.forwarding", "1"));
 
   //
   // Step 4

@@ -179,6 +179,10 @@ int main (int argc, char *argv[])
   RunIp (ar.Get (0), Seconds (0.14), "link set sim2 up");
   RunIp (ar.Get (0), Seconds (0.15), "-6 route add 2001:1:2::/48 via 2001:1:2:3::1 dev sim0");
   RunIp (ar.Get (0), Seconds (0.15), "route show table all");
+  Ptr<LinuxSocketFdFactory> kern = ar.Get (0)->GetObject<LinuxSocketFdFactory>();
+  Simulator::ScheduleWithContext (ar.Get (0)->GetId (), Seconds (0.1),
+                                  MakeEvent (&LinuxSocketFdFactory::Set, kern,
+                                             ".net.ipv6.conf.all.forwarding", "1"));
 
   // For AR2 (the intermediate node)
   AddAddress (ar.Get (1), Seconds (0.1), "sim0", "2001:1:2:3::3/64");
@@ -190,6 +194,10 @@ int main (int argc, char *argv[])
   oss << "-6 route add " << mnp1 << "/64 via 2001:1:2:3::1 dev sim0";
   RunIp (ar.Get (1), Seconds (0.15), oss.str ());
   RunIp (ar.Get (1), Seconds (0.15), "route show table all");
+  kern = ar.Get (1)->GetObject<LinuxSocketFdFactory>();
+  Simulator::ScheduleWithContext (ar.Get (1)->GetId (), Seconds (0.1),
+                                  MakeEvent (&LinuxSocketFdFactory::Set, kern,
+                                             ".net.ipv6.conf.all.forwarding", "1"));
 
   // For MR
   for (uint32_t i = 0; i < mr.GetN (); i++)
