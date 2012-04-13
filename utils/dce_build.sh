@@ -32,16 +32,16 @@ mv a src/internet/model/ipv6-l3-protocol.cc
 cd ..
 
 # mod ns-3-dce (FIXME)
-if [ "YES" == "$USE_KERNEL" ]
-then
-    WAF_KERNEL=--enable-kernel-stack=`pwd`/../ns-3-linux
-fi
-
 #hg clone http://202.249.37.8/ical/ns-3-dce-patches/
 cd ns-3-dce-patches
 hg pull -u
 cd ..
 cd ns-3-dce
+if [ "YES" == "$USE_KERNEL" ]
+then
+    WAF_KERNEL=--enable-kernel-stack=`pwd`/../ns-3-linux
+fi
+
 patch -p1 < ../ns-3-dce-patches/120410-dce-umip-support.patch
 . ./utils/setenv.sh
 ./waf configure --prefix=`pwd`/../build --verbose $WAF_KERNEL
