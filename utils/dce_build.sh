@@ -1,4 +1,15 @@
 #!/bin/bash
+USE_KERNEL=NO
+args=("$@")
+NB=$#
+for (( i=0;i<$NB;i++)); do
+    if [ ${args[${i}]} = '-k' ]
+    then
+       USE_KERNEL=YES
+       WGET=wget
+    fi
+done
+
 
 cd `dirname $BASH_SOURCE`/../..
 
@@ -21,6 +32,11 @@ mv a src/internet/model/ipv6-l3-protocol.cc
 cd ..
 
 # mod ns-3-dce (FIXME)
+if [ "YES" == "$USE_KERNEL" ]
+then
+    WAF_KERNEL=--enable-kernel-stack=`pwd`/../ns-3-linux
+fi
+
 #hg clone http://202.249.37.8/ical/ns-3-dce-patches/
 cd ns-3-dce-patches
 hg pull -u
@@ -28,26 +44,29 @@ cd ..
 cd ns-3-dce
 patch -p1 < ../ns-3-dce-patches/120410-dce-umip-support.patch
 . ./utils/setenv.sh
-./waf configure --prefix=`pwd`/../build --verbose --enable-kernel-stack=`pwd`/../ns-3-linux
+./waf configure --prefix=`pwd`/../build --verbose $WAF_KERNEL
 ./waf
 ./waf install
 cd ..
 
 # mod ns-3-linux (FIXME)
-hg clone http://202.249.37.8/ical/ns-3-linux-patches/
-cd ns-3-linux-patches
-hg pull -u
+if [ "YES" == "$USE_KERNEL" ]
+then
+      hg clone http://202.249.37.8/ical/ns-3-linux-patches/
+      cd ns-3-linux-patches
+      hg pull -u
+      cd ..
+      cd ns-3-linux
+      patch -p1 < ../ns-3-linux-patches/120410-linux-umip-support.patch
+      cd net-next-2.6
+      patch -p1 < ../kernel-dsmip6.patch
+      cd ..
+      make clean
+      rm -f config
+      make config
+      CFLAGS+="-DCONFIG_NETDEVICES" make
 cd ..
-cd ns-3-linux
-patch -p1 < ../ns-3-linux-patches/120410-linux-umip-support.patch
-cd net-next-2.6
-patch -p1 < ../kernel-dsmip6.patch
-cd ..
-make clean
-rm -f config
-make config
-make
-cd ..
+fi
 
 # build umip-dsmip6
 ##wget ftp://ftp.linux-ipv6.org/pub/usagi/patch/mipv6/umip-0.4/daemon/tarball/mipv6-daemon-umip-0.4.tar.gz
@@ -95,7 +114,9 @@ cd ..
 wget https://launchpad.net/ubuntu/+archive/primary/+files/udhcp_0.9.8cvs20050303.orig.tar.gz
 tar xfz udhcp_0.9.8cvs20050303.orig.tar.gz
 cd udhcp
-CFLAGS="-fPIC -g" LDFLAGS=-pie make
+sed "s/strrchr(argv[0], '\/')/\"udhcpd\"/" frontend.c > a
+mv a frontend.c
+CFLAGS="-fPIC -g -DUDHCP_DEBUG" LDFLAGS=-pie make
 cp -f udhcpd ../ns-3-dce/build/bin_dce/
 cd ..
 
@@ -103,7 +124,7 @@ cd ..
 cd ns-3-dce-umip
 . ../ns-3-dce/utils/setenv.sh
 cd ../ns-3-dce-umip
-./waf configure --prefix=`pwd`/../build --verbose --enable-kernel-stack=`pwd`/../ns-3-linux
+./waf configure --prefix=`pwd`/../build --verbose $WAF_KERNEL
 ./waf
 ./waf install
 echo Launch NS3UMIPTEST-DCE

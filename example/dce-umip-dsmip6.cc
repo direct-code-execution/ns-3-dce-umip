@@ -183,6 +183,10 @@ int main (int argc, char *argv[])
   RunIp (ar.Get (0), Seconds (0.15), "-6 route add 2001:1:2::/48 via 2001:1:2:3::1 dev sim0");
   RunIp (ar.Get (0), Seconds (0.15), "route show table all");
   RunIp (ar.Get (0), Seconds (4.13), "-4 addr add 192.168.10.2/24 dev sim0");
+  Ptr<LinuxSocketFdFactory> kern = ar.Get (0)->GetObject<LinuxSocketFdFactory>();
+  Simulator::ScheduleWithContext (ar.Get (0)->GetId (), Seconds (0.1),
+                                  MakeEvent (&LinuxSocketFdFactory::Set, kern,
+                                             ".net.ipv6.conf.all.forwarding", "1"));
 
   // For AR2 (the intermediate node)
   AddAddress (ar.Get (1), Seconds (0.1), "sim0", "2001:1:2:3::3/64");
@@ -196,6 +200,10 @@ int main (int argc, char *argv[])
   RunIp (ar.Get (1), Seconds (0.15), oss.str ());
   RunIp (ar.Get (1), Seconds (0.15), "route show table all");
   RunIp (ar.Get (1), Seconds (4.13), "-4 addr add 192.168.10.3/24 dev sim0");
+  kern = ar.Get (1)->GetObject<LinuxSocketFdFactory>();
+  Simulator::ScheduleWithContext (ar.Get (1)->GetId (), Seconds (0.1),
+                                  MakeEvent (&LinuxSocketFdFactory::Set, kern,
+                                             ".net.ipv6.conf.all.forwarding", "1"));
 
   // For MR
   for (uint32_t i = 0; i < mr.GetN (); i++)
@@ -215,6 +223,8 @@ int main (int argc, char *argv[])
   RunIp (mr.Get (0), Seconds (4.2), "addr list");
   RunIp (ha.Get (0), Seconds (20.0), "route show table all");
   RunIp (mr.Get (0), Seconds (20.0), "route show table all");
+  RunIp (mr.Get (0), Seconds (20.0), "xfrm state");
+  RunIp (mr.Get (0), Seconds (20.0), "xfrm policy");
 
   {
     DceApplicationHelper process;
