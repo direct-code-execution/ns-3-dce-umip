@@ -25,6 +25,7 @@
 #include "ns3/object-factory.h"
 #include "ns3/boolean.h"
 #include "ns3/ipv4-interface-container.h"
+#include "ns3/address-utils.h"
 
 namespace ns3 {
 
@@ -94,6 +95,13 @@ public:
                        Ipv6Address addr, Ipv6Prefix plen);
   void EnableMR (NodeContainer nodes);
   void EnableDSMIP6 (NodeContainer nodes);
+
+  // For PMIP
+  void AddMNProfileMAG (Ptr<Node> node, Mac48Address mn_id, 
+                        Ipv6Address lma_addr,
+                        Ipv6Address home_pfx, Ipv6Prefix home_plen);
+  void EnableMAG (Ptr<Node> node, const char *ifname, Ipv6Address addr);
+  void EnableLMA (Ptr<Node> node, const char *ifname);
 
   // Common
   void EnableDebug (NodeContainer nodes);

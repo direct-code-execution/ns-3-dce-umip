@@ -38,6 +38,7 @@ public:
   Mip6dConfig ()
     : m_haenable (false),
       m_mrenable (false),
+      m_magenable (false),
       m_debug (false),
       m_usemanualconf (false),
       m_ha_served_pfx (""),
@@ -46,6 +47,7 @@ public:
   {
     m_mr_mobile_pfx = new std::vector<std::string> ();
     m_mr_egress_if = new std::vector<std::string> ();
+    m_mag_mn_profiles = new std::vector<Mip6dConfig::pmipMNprofile_t> ();
   }
   ~Mip6dConfig ()
   {
@@ -66,8 +68,16 @@ public:
     return GetTypeId ();
   }
 
+  typedef struct
+  {
+    std::string m_mn_id;
+    std::string m_lma_addr;
+    std::string m_home_prefix;
+  } pmipMNprofile_t;
+
   bool m_haenable;
   bool m_mrenable;
+  bool m_magenable;
   bool m_debug;
   bool m_usemanualconf;
   bool m_dsmip6enable;
@@ -77,6 +87,10 @@ public:
   std::vector<std::string> *m_mr_egress_if;
   std::string m_mr_ha_addr;
   std::string m_mr_home_addr;
+  std::string m_lma_mag_ifname;
+  std::string m_mag_egress_gaddr;
+  std::string m_mag_egress_ifname;
+  std::vector<pmipMNprofile_t> *m_mag_mn_profiles;
 
   virtual void
   Print (std::ostream& os) const
@@ -244,6 +258,72 @@ Mip6dHelper::AddHomeAddress (Ptr<Node> node,
   return;
 }
 
+// Local Mobility Anchor (LMA)
+void
+Mip6dHelper::EnableLMA (Ptr<Node> node, const char *ifname)
+{
+  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig>();
+  if (!mip6d_conf)
+    {
+      mip6d_conf = CreateObject<Mip6dConfig> ();
+      node->AggregateObject (mip6d_conf);
+    }
+
+  mip6d_conf->m_haenable = true;
+  mip6d_conf->m_lma_mag_ifname = ifname;
+}
+
+// Mobile Access Gateway (MAG)
+void
+Mip6dHelper::EnableMAG (Ptr<Node> node, 
+                        const char *ifname, Ipv6Address addr)
+{
+  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig>();
+  if (!mip6d_conf)
+    {
+      mip6d_conf = CreateObject<Mip6dConfig> ();
+      node->AggregateObject (mip6d_conf);
+    }
+
+  mip6d_conf->m_magenable = true;
+  std::ostringstream oss;
+  addr.Print (oss);
+  mip6d_conf->m_mag_egress_gaddr = oss.str ();
+  mip6d_conf->m_mag_egress_ifname = ifname;
+}
+
+void
+Mip6dHelper::AddMNProfileMAG (Ptr<Node> node, Mac48Address mn_id, 
+                              Ipv6Address lma_addr,
+                              Ipv6Address home_pfx, Ipv6Prefix home_plen)
+{
+  Ptr<Mip6dConfig> mip6d_conf = node->GetObject<Mip6dConfig>();
+  if (!mip6d_conf)
+    {
+      mip6d_conf = CreateObject<Mip6dConfig> ();
+      node->AggregateObject (mip6d_conf);
+    }
+
+  std::ostringstream oss;
+  Mip6dConfig::pmipMNprofile_t profile;
+
+  oss << mn_id;
+  profile.m_mn_id = oss.str ();
+
+  oss.str ("");
+  lma_addr.Print (oss);
+  profile.m_lma_addr = oss.str ();
+
+  oss.str ("");
+  home_pfx.Print (oss);
+  oss << "/" << (uint32_t)home_plen.GetPrefixLength ();
+  profile.m_home_prefix = oss.str ();
+
+  mip6d_conf->m_mag_mn_profiles->push_back (profile);
+
+  return;
+}
+
 // DSMIP
 void
 Mip6dHelper::EnableDSMIP6 (NodeContainer nodes)
@@ -340,7 +420,11 @@ Mip6dHelper::GenerateConfig (Ptr<Node> node)
            << "#BindingAclPolicy 2001:1:2:3::1000 (2001:1:2:5::/64) allow;" << std::endl
            << "DefaultBindingAclPolicy allow;" << std::endl;
 
+      if (!mip6d_conf->m_lma_mag_ifname.empty ())
+        conf << "LMAInterfaceMAG \"" << mip6d_conf->m_lma_mag_ifname << "\";" << std::endl;
 
+      if (!mip6d_conf->m_ha_served_pfx.empty ())
+        conf << "HaServedPrefix " << mip6d_conf->m_ha_served_pfx << ";" << std::endl;
 
       conf << "HaServedPrefix " << mip6d_conf->m_ha_served_pfx << ";" << std::endl;
       if (mip6d_conf->m_dsmip6enable)
@@ -409,6 +493,31 @@ Mip6dHelper::GenerateConfig (Ptr<Node> node)
         }
       conf << ");" << std::endl;
       conf << "}" << std::endl;
+    }
+  else if (mip6d_conf->m_magenable)
+    {
+      conf << "NodeConfig MN;" << std::endl
+           << "DoRouteOptimizationCN disabled;" << std::endl
+           << "DoRouteOptimizationMN disabled;" << std::endl
+           << "UseCnBuAck disabled;" << std::endl
+           << "OptimisticHandoff enabled;" << std::endl
+           << "MnMaxHaBindingLife 60;" << std::endl;
+
+      conf << "MAGInterfaceLMA \"" << mip6d_conf->m_mag_egress_ifname << "\";" << std::endl;
+      conf << "MAGEgressGlobalAddress " << mip6d_conf->m_mag_egress_gaddr << ";" << std::endl;
+
+
+      for (std::vector<Mip6dConfig::pmipMNprofile_t>::iterator i = mip6d_conf->m_mag_mn_profiles->begin (); 
+           i != mip6d_conf->m_mag_mn_profiles->end (); ++i)
+        {
+          conf << "MNIdentifier \"" << (*i).m_mn_id <<"\" {" << std::endl;
+          conf << "       PMIPEnabled 1;" << std::endl;
+          conf << "       LMAAddress " << (*i).m_lma_addr << ";" << std::endl;
+          conf << "       HomeNetworkPrefix1 " << (*i).m_home_prefix << ";" << std::endl;
+          conf << "       PMIPInterface1 \"sim0(XXX)\";" << std::endl;
+          conf << "       HomePrefixLifetime 460.0;" << std::endl;
+          conf << "}" << std::endl;
+        }
     }
   else
     {
