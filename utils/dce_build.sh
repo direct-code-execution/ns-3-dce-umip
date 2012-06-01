@@ -20,8 +20,7 @@ mv a src/internet/model/ipv6-l3-protocol.cc
 ./waf install
 cd ..
 
-# mod ns-3-dce (FIXME)
-#hg clone http://202.249.37.8/ical/ns-3-dce-patches/
+# mod ns-3-dce
 cd ns-3-dce-patches
 hg pull -u
 cd ..
@@ -35,8 +34,8 @@ patch -p1 < ../ns-3-dce-patches/120410-dce-umip-support.patch
 ./waf install
 cd ..
 
-# mod ns-3-linux (FIXME)
-hg clone http://202.249.37.8/ical/ns-3-linux-patches/
+# mod ns-3-linux
+hg clone http://code.nsnam.org/thehajime/ns-3-linux-patches/
 cd ns-3-linux-patches
 hg pull -u
 cd ..
