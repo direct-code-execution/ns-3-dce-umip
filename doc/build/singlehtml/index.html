@@ -1,0 +1,319 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ns-3 DCE Mobile IPv6 support 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="None" href="index.html#document-index" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li><a href="index.html#document-index">ns-3 DCE Mobile IPv6 support 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="welcome-to-ns-3-dce-mobile-ipv6-support-s-documentation">
+<h1>Welcome to ns-3 DCE Mobile IPv6 support&#8217;s documentation!<a class="headerlink" href="#welcome-to-ns-3-dce-mobile-ipv6-support-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<span id="document-getting-started"></span><div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The UMIP (Usagi-Patched Mobile IPv6 stack) support on DCE enables the
+users to reuse routing protocol implementations of UMIP. UMIP now
+supports Mobile IPv6 (RFC3775), Network Mobility (RFC3963), Proxy
+Mobile Ipv6 (RFC5213), etc, and can be used these protocols
+implementation as models of network simulation. It reduces the time of
+re-implementation of the model, and potentially improve the result of
+the simulation since it already &#8220;actively running&#8221; in the real world.</p>
+<p>Unlike the quagga support of DCE, UMIP support requires Linux kernel
+integration of DCE (ns-3-linux) because of the dependencies of UMIP,
+interacts with Linux kernel.</p>
+<div class="section" id="current-status-2012-6-1">
+<h3>Current Status (2012/6/1)<a class="headerlink" href="#current-status-2012-6-1" title="Permalink to this headline">¶</a></h3>
+<p>UMIP support on DCE does not fully support all the environment that
+DCE has. The following shows the limited availability of each
+protocol.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="30%" />
+<col width="32%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">&nbsp;</th>
+<th class="head">Advanced Mode
+(ns-3-linux)</th>
+<th class="head">Remarks</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Mobile IPv6</td>
+<td>OK</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>NEMO</td>
+<td>OK</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>Proxy Mobile IPv6</td>
+<td>(N/A)</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>Dual-Stack MIP v6</td>
+<td>(N/A)</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="prerequisite">
+<h3>Prerequisite<a class="headerlink" href="#prerequisite" title="Permalink to this headline">¶</a></h3>
+<p>UMIP support on DCE requires several packages:
+autoconf, automake, flex, git-core, wget, g++, libc-dbg, bison, indent, pkgconfig</p>
+<p>You need to install the correspondent packages in advance.</p>
+<div class="highlight-python"><pre>$ sudo apt-get install git-core (in ubuntu/debian)</pre>
+</div>
+<p>or</p>
+<div class="highlight-python"><pre>$ sudo yum install git (in fedora)</pre>
+</div>
+</div>
+<div class="section" id="building-ns-3-dce-dce-quagga-and-dce-umip">
+<h3>Building ns-3, DCE, DCE-Quagga, and DCE-UMIP<a class="headerlink" href="#building-ns-3-dce-dce-quagga-and-dce-umip" title="Permalink to this headline">¶</a></h3>
+<p>(Hope bake integration tool will help these instruction simple :-)</p>
+<p>First you need to download NS-3 DCE using mercurial:</p>
+<div class="highlight-python"><pre>$ mkdir test_build_ns3_dce
+$ cd test_build_ns3_dce
+$ hg clone http://code.nsnam.org/furbani/ns-3-dce</pre>
+</div>
+<p>then build ns-3-dce:</p>
+<div class="highlight-python"><pre>$ ns-3-dce/utils/clone_and_compile_ns3_dce.sh -k</pre>
+</div>
+<p>Note that &#8220;-k&#8221; requires the build of ns-3-linux, which supports Linux
+native stack direct code execution with quagga. This is highly
+recommended at this moment (2012/04/20) so that Quagga runs
+successfully.</p>
+<p>For more information about ns-3-dce core, please refer the <a class="reference external" href="http://www-sop.inria.fr/members/Frederic.Urbani/ns3dceccnx/getting-started.html#building-ns-3-and-dce">DCE manual</a>.</p>
+<p>After DCE is installed successfully, then install ns-3-dce-quagga.</p>
+<div class="highlight-python"><pre>$ cd test_build_ns3_dce
+$ hg clone http://code.nsnam.org/thehajime/ns-3-dce-quagga
+$ cd ns-3-dce-quagga
+$ ./utils/dce_build.sh -k</pre>
+</div>
+<p>It&#8217;s ready to install ns-3-dce-umip after all.</p>
+<div class="highlight-python"><pre>$ cd test_build_ns3_dce
+$ hg clone http://code.nsnam.org/thehajime/ns-3-dce-umip</pre>
+</div>
+<p>You can build ns-3-dce-quagga as following:</p>
+<div class="highlight-python"><pre>$ cd ns-3-dce-umip
+$ ./utils/dce_build.sh
+...
+Launch NS3UMIPTEST-DCE
+PASS dce-quagga 16.310ms
+  PASS Check that process "NEMO" completes correctly. 2.010ms</pre>
+</div>
+<p>You can see the above PASSed test if everything goes fine. Congrats!</p>
+</div>
+<div class="section" id="setting-environment">
+<h3>Setting Environment<a class="headerlink" href="#setting-environment" title="Permalink to this headline">¶</a></h3>
+<p>Call the setenv.sh script to correctly setup the environment variables (i.e., PATH, LD_LIBRARY_PATH and PKG_CONFIG_PATH)</p>
+<div class="highlight-python"><pre>$ source ns-3-dce/utils/setenv.sh</pre>
+</div>
+</div>
+<div class="section" id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="basic">
+<h4>Basic<a class="headerlink" href="#basic" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><pre>$ cd ns-3-dce-umip
+$ ./build/bin/dce-umip-nemo</pre>
+</div>
+<p>if everything goes fine, you would see the output as follows.</p>
+<div class="highlight-python"><pre>$ ./build/bin/dce-umip-nemo
+Sent 1032 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
+Sent 1032 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
+Sent 1032 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
+Sent 1032 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
+Sent 1032 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
+Sent 1080 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
+Sent 1080 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
+Received Echo Reply size  = 1024 bytes from 2001:0001:0002:0006:0200:00ff:fe00:000a id =  48879 seq = 6
+Sent 1080 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
+Received Echo Reply size  = 1024 bytes from 2001:0001:0002:0006:0200:00ff:fe00:000a id =  48879 seq = 7
+Sent 1080 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
+Received Echo Reply size  = 1024 bytes from 2001:0001:0002:0006:0200:00ff:fe00:000a id =  48879 seq = 8
+Sent 1080 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
+
+(snip)
+
+Sent 1080 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
+Received Echo Reply size  = 1024 bytes from 2001:0001:0002:0006:0200:00ff:fe00:000a id =  48879 seq = 297
+$</pre>
+</div>
+</div>
+<div class="section" id="ospf">
+<h4>OSPF<a class="headerlink" href="#ospf" title="Permalink to this headline">¶</a></h4>
+<p>You will also see the packet exchange between Home Agent and Mobile
+Router from the generated pcap file.</p>
+<div class="highlight-python"><pre>09:00:06.780000 IP6 (hlim 63, next-header unknown (60) payload length: 80)
+2001:1:2:7:200:ff:fe00:5 &gt; 2001:1:2:3::1: DSTOPT (padn)(homeaddr: 2001:1:2:3::1000)
+mobility: BU seq#=26515 AH lifetime=300(padn)(alt-CoA: 2001:1:2:7:200:ff:fe00:5)(padn)(type-0x06: len=18)
+(snip)
+09:00:07.784000 IP6 (hlim 64, next-header Routing (43) payload length: 40)
+2001:1:2:3::1 &gt; 2001:1:2:7:200:ff:fe00:5: srcrt (len=2, type=2, segleft=1, rsv=0x0, [0]2001:1:2:3::1000)
+mobility: BA status=0 seq#=26515 lifetime=296(padn)
+(snip)
+09:00:07.788943 IP6 (hlim 63, next-header unknown (60) payload length: 32)
+2001:1:2:7:200:ff:fe00:5 &gt; 2001:1:2:3::1: DSTOPT (padn)(homeaddr: 2001:1:2:3::1000)[bad icmp6 cksum f70e!]
+ICMP6, mobile router solicitation, length 8, id 0xacc7
+09:00:07.788943 IP6 (hlim 64, next-header Routing (43) payload length: 64)
+2001:1:2:3::1 &gt; 2001:1:2:7:200:ff:fe00:5: srcrt (len=2, type=2, segleft=1, rsv=0x0, [0]2001:1:2:3::1000) [bad icmp6 cksum f70e!]
+ICMP6, mobile router advertisement, length 40, id 0xacc7
+          prefix info option (3), length 32 (4): 2001:1:2:3::/64, Flags [onlink, auto], valid time 298s, pref. time 148s
+            0x0000:  40c0 0000 012a 0000 0094 0000 0000 2001
+            0x0010:  0001 0002 0003 0000 0000 0000 0000</pre>
+</div>
+<p>Binding Update (BU) and Binding Acknowledgment packets are exchanged,
+follows mobile router advertisement generated by UMIP implementation.</p>
+</div>
+</div>
+<div class="section" id="configuration-manual">
+<h3>Configuration Manual<a class="headerlink" href="#configuration-manual" title="Permalink to this headline">¶</a></h3>
+<p>In order to use UMIP in ns-3, users need to define in the scenario via ns3::Mip6dHelper.</p>
+<div class="highlight-python"><pre>#include "ns3/mip6d-helper.h"
+
+int main (int argc, char *argv[])
+{
+  Mip6dHelper mip6d;
+
+  // Home Agent configuration
+  mip6d.AddHaServedPrefix (ha.Get (0), Ipv6Address ("2001:1:2::"), Ipv6Prefix (48));
+  mip6d.EnableHA (ha);
+  mip6d.Install (ha);
+
+  // Mobile Router (NEMO) configuration
+  for (uint32_t i = 0; i &lt; mr.GetN (); i++)
+    {
+      mip6d.AddMobileNetworkPrefix (mr.Get (i), Ipv6Address (mnps-&gt;at (i).c_str ()), Ipv6Prefix (64));
+      mip6d.AddHomeAgentAddress (mr.Get (i), Ipv6Address ("2001:db8:deaf:beaf::1"));
+      mip6d.AddHomeAddress (mr.Get (i), Ipv6Address ("2001:1:2:3::1000"), Ipv6Prefix (64));
+      mip6d.AddEgressInterface (mr.Get (i), "sim0");
+    }
+  mip6d.EnableMR (mr);
+  mip6d.Install (mr);
+}</pre>
+</div>
+</div>
+</div>
+<div class="section" id="modifying-dce-umip">
+<h2>Modifying DCE UMIP<a class="headerlink" href="#modifying-dce-umip" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="customizing-helper">
+<h3>Customizing Helper<a class="headerlink" href="#customizing-helper" title="Permalink to this headline">¶</a></h3>
+<p>At this moment, only a limited configuration of UMIP is implemented in
+the Mip6dHelper. For example, if you wanna configure the &#8220;route
+optimization&#8221; for triangle route by Mobile IPv6, you do have to
+extend Mip6dHelper (mip6d-helper.cc) to generate the following
+configuration for example.</p>
+<div class="highlight-python"><pre>DoRouteOptimizationMN enabled</pre>
+</div>
+</div>
+<div class="section" id="customizing-binary">
+<h3>Customizing Binary<a class="headerlink" href="#customizing-binary" title="Permalink to this headline">¶</a></h3>
+<p>If you wanna extend the protocol by modifying the source code of
+mip6d, your extended binary should be located at the directory
+&#8220;ns-3-dce/build/bin_dce&#8221;.</p>
+</div>
+</div>
+<div class="section" id="faq">
+<h2>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h2>
+<p>(TBA)</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html#document-index">Table Of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-getting-started">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#current-status-2012-6-1">Current Status (2012/6/1)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#getting-started">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#prerequisite">Prerequisite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#building-ns-3-dce-dce-quagga-and-dce-umip">Building ns-3, DCE, DCE-Quagga, and DCE-UMIP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#setting-environment">Setting Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#configuration-manual">Configuration Manual</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#modifying-dce-umip">Modifying DCE UMIP</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#customizing-helper">Customizing Helper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#customizing-binary">Customizing Binary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#faq">FAQ</a></li>
+</ul>
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li><a href="index.html#document-index">ns-3 DCE Mobile IPv6 support 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Hajime Tazaki.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

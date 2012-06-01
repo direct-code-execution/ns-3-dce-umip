@@ -295,7 +295,7 @@ int main (int argc, char *argv[])
   phy.EnablePcapAll ("dce-mip6d");
   csma.EnablePcapAll ("dce-mip6d");
 
-  Simulator::Stop (Seconds (30.0));
+  Simulator::Stop (Seconds (300.0));
   Simulator::Run ();
   Simulator::Destroy ();
 

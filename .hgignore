@@ -9,3 +9,5 @@
 ^.waf-
 ^.lock-
 pcap
+^doc/build
+
