@@ -85,7 +85,7 @@ public:
   std::string m_ha_served_pfx;
   std::vector<std::string> *m_mr_mobile_pfx;
   std::vector<std::string> *m_mr_egress_if;
-  std::string m_mr_ha_addr;
+  std::string m_mn_ha_addr;
   std::string m_mr_home_addr;
   std::string m_lma_mag_ifname;
   std::string m_mag_egress_gaddr;
@@ -234,7 +234,7 @@ Mip6dHelper::AddHomeAgentAddress (Ptr<Node> node, Ipv6Address addr)
 
   std::ostringstream oss;
   addr.Print (oss);
-  mip6d_conf->m_mr_ha_addr = oss.str ();
+  mip6d_conf->m_mn_ha_addr = oss.str ();
 
   return;
 }
@@ -426,7 +426,6 @@ Mip6dHelper::GenerateConfig (Ptr<Node> node)
       if (!mip6d_conf->m_ha_served_pfx.empty ())
         conf << "HaServedPrefix " << mip6d_conf->m_ha_served_pfx << ";" << std::endl;
 
-      conf << "HaServedPrefix " << mip6d_conf->m_ha_served_pfx << ";" << std::endl;
       if (mip6d_conf->m_dsmip6enable)
         {
           conf << "HaAcceptDsmip6 enabled;" << std::endl;
@@ -437,7 +436,34 @@ Mip6dHelper::GenerateConfig (Ptr<Node> node)
           conf << "HomeAgentV4Address 192.168.10.1;" << std::endl;
         }
     }
-  else if (mip6d_conf->m_mrenable)
+  // PMIP MAG
+  else if (mip6d_conf->m_magenable)
+    {
+      conf << "NodeConfig MN;" << std::endl
+           << "DoRouteOptimizationCN disabled;" << std::endl
+           << "DoRouteOptimizationMN disabled;" << std::endl
+           << "UseCnBuAck disabled;" << std::endl
+           << "OptimisticHandoff enabled;" << std::endl
+           << "MnMaxHaBindingLife 60;" << std::endl;
+
+      conf << "MAGInterfaceLMA \"" << mip6d_conf->m_mag_egress_ifname << "\";" << std::endl;
+      conf << "MAGEgressGlobalAddress " << mip6d_conf->m_mag_egress_gaddr << ";" << std::endl;
+
+
+      for (std::vector<Mip6dConfig::pmipMNprofile_t>::iterator i = mip6d_conf->m_mag_mn_profiles->begin (); 
+           i != mip6d_conf->m_mag_mn_profiles->end (); ++i)
+        {
+          conf << "MNIdentifier \"" << (*i).m_mn_id <<"\" {" << std::endl;
+          conf << "       PMIPEnabled 1;" << std::endl;
+          conf << "       LMAAddress " << (*i).m_lma_addr << ";" << std::endl;
+          conf << "       HomeNetworkPrefix1 " << (*i).m_home_prefix << ";" << std::endl;
+          conf << "       PMIPInterface1 \"sim0(XXX)\";" << std::endl;
+          conf << "       HomePrefixLifetime 460.0;" << std::endl;
+          conf << "}" << std::endl;
+        }
+    }
+  // CMIP-MN or MR (NEMO)
+  else
     {
       if (mip6d_conf->m_dsmip6enable)
         {
@@ -478,50 +504,30 @@ Mip6dHelper::GenerateConfig (Ptr<Node> node)
                << "# HomeAgentName <FQDN of the Home Agent>;" << std::endl;
         }
 
-      conf << "	IsMobRtr enabled;" << std::endl
-           << "	HomeAgentAddress " << mip6d_conf->m_mr_ha_addr << ";" << std::endl;
-
-      conf << "	HomeAddress " << mip6d_conf->m_mr_home_addr << "(";
-      for (std::vector<std::string>::iterator i = mip6d_conf->m_mr_mobile_pfx->begin ();
-           i != mip6d_conf->m_mr_mobile_pfx->end (); ++i)
+      if (mip6d_conf->m_mrenable)
         {
-          if (i != mip6d_conf->m_mr_mobile_pfx->begin ())
+          conf << "	IsMobRtr enabled;" << std::endl;
+        }
+      conf << "	HomeAgentAddress " << mip6d_conf->m_mn_ha_addr << ";" << std::endl;
+
+      conf << "	HomeAddress " << mip6d_conf->m_mr_home_addr;
+      
+      if (mip6d_conf->m_mrenable)
+        {
+          conf << "(";
+          for (std::vector<std::string>::iterator i = mip6d_conf->m_mr_mobile_pfx->begin ();
+               i != mip6d_conf->m_mr_mobile_pfx->end (); ++i)
             {
-              conf << "," ;
+              if (i != mip6d_conf->m_mr_mobile_pfx->begin ())
+                {
+                  conf << "," ;
+                }
+              conf << (*i);
             }
-          conf << (*i);
+          conf << ")" << std::endl;
         }
-      conf << ");" << std::endl;
+      conf << ";" << std::endl;
       conf << "}" << std::endl;
-    }
-  else if (mip6d_conf->m_magenable)
-    {
-      conf << "NodeConfig MN;" << std::endl
-           << "DoRouteOptimizationCN disabled;" << std::endl
-           << "DoRouteOptimizationMN disabled;" << std::endl
-           << "UseCnBuAck disabled;" << std::endl
-           << "OptimisticHandoff enabled;" << std::endl
-           << "MnMaxHaBindingLife 60;" << std::endl;
-
-      conf << "MAGInterfaceLMA \"" << mip6d_conf->m_mag_egress_ifname << "\";" << std::endl;
-      conf << "MAGEgressGlobalAddress " << mip6d_conf->m_mag_egress_gaddr << ";" << std::endl;
-
-
-      for (std::vector<Mip6dConfig::pmipMNprofile_t>::iterator i = mip6d_conf->m_mag_mn_profiles->begin (); 
-           i != mip6d_conf->m_mag_mn_profiles->end (); ++i)
-        {
-          conf << "MNIdentifier \"" << (*i).m_mn_id <<"\" {" << std::endl;
-          conf << "       PMIPEnabled 1;" << std::endl;
-          conf << "       LMAAddress " << (*i).m_lma_addr << ";" << std::endl;
-          conf << "       HomeNetworkPrefix1 " << (*i).m_home_prefix << ";" << std::endl;
-          conf << "       PMIPInterface1 \"sim0(XXX)\";" << std::endl;
-          conf << "       HomePrefixLifetime 460.0;" << std::endl;
-          conf << "}" << std::endl;
-        }
-    }
-  else
-    {
-      NS_ASSERT ("Need to specify HA or MR");
     }
 
   if (mip6d_conf->m_debug)

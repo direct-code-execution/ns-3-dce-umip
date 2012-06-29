@@ -66,6 +66,10 @@ def build_dce_examples(module):
 
 def build_dce_kernel_examples(module):
     module.add_example(needed = ['core', 'internet', 'dce', 'csma', 'mobility', 'wifi', 'dce-quagga', 'dce-umip'],
+                       target='bin/dce-umip-cmip6',
+                       source=['example/dce-umip-cmip6.cc'])
+
+    module.add_example(needed = ['core', 'internet', 'dce', 'csma', 'mobility', 'wifi', 'dce-quagga', 'dce-umip'],
                        target='bin/dce-umip-nemo',
                        source=['example/dce-umip-nemo.cc'])
 

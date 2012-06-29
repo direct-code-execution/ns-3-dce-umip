@@ -1,15 +1,15 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
 //
-// NEMO (Network Mobility) simulation with umip (mip6d) and net-next-2.6.
+// MIPv6 (Mobile IPv6) simulation with umip (mip6d) and net-next-2.6.
 //
 // UMIP: http://www.umip.org/git/umip.git
 // patchset: 0daa3924177f326e26ed8bbb9dc9f0cdf8a51618
 // build:  CFLAGS="-fPIC -g" CXXFLAGS="-fPIC -g" LDFLAGS="-pie -g" ./configure --enable-vt --with-cflags="-DRT_DEBUG_LEVEL=1" --with-builtin-crypto
 //
 // Simulation Topology:
-// Scenario: MR and MNN moves from under AR1 to AR2 with Care-of-Address
-//           alternation. during movement, MNN keeps ping6 to CN.
+// Scenario: MN moves from under AR1 to AR2 with Care-of-Address
+//           alternation. during movement, MN keeps ping6 to CN.
 //
 //                                    +-----------+
 //                                    |    HA     |
@@ -22,15 +22,11 @@
 //      +--------+         +---+----+              +----+---+
 //                             |sim1                    |sim1
 //                             |                        |
-//
-//                               sim0                     sim0
-//                        +----+------+  (Movement) +----+-----+
-//                        |    MR     |   <=====>   |    MR    |
-//                        +-----------+             +----------+
-//                             |sim1                     |sim1
-//                        +---------+               +---------+
-//                        |   MNN   |               |   MNN   |
-//                        +---------+               +---------+
+//                           :::::
+//                             |sim0                    |sim0
+//                        +---------+   (Movement)  +--------+
+//                        |    MN   |     <=====>   |   MN   |
+//                        +---------+               +--------+
 
 #include "ns3/network-module.h"
 #include "ns3/core-module.h"
@@ -74,20 +70,19 @@ int main (int argc, char *argv[])
   cmd.AddValue ("usePing", "Using Ping6 or not", usePing);
   cmd.Parse (argc, argv);
 
-  NodeContainer mr, ha, ar;
+  NodeContainer mn, ha, ar;
   ha.Create (1);
   ar.Create (2);
-  mr.Create (1);
-  NodeContainer mnn, cn;
+  mn.Create (1);
+  NodeContainer cn;
   cn.Create (1);
-  mnn.Create (1);
 
   NetDeviceContainer devices;
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
   positionAlloc->Add (Vector (75.0, -50.0, 0.0)); // HA
   positionAlloc->Add (Vector (0.0, 10.0, 0.0)); // AR1
-  positionAlloc->Add (Vector (150.0, 10.0, 0.0)); // AR2
+  positionAlloc->Add (Vector (300.0, 10.0, 0.0)); // AR2
   positionAlloc->Add (Vector (-50.0, 10.0, 0.0)); // CN
   mobility.SetPositionAllocator (positionAlloc);
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
@@ -105,20 +100,9 @@ int main (int argc, char *argv[])
                              "Bounds", RectangleValue (Rectangle (0, 200, 30, 60)),
                              "Speed", RandomVariableValue (ConstantVariable (10)),
                              "Pause", RandomVariableValue (ConstantVariable (0.2)));
-  mobility.Install (mr);
+  //  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.Install (mn);
 
-
-  mobility.PushReferenceMobilityModel (mr.Get (0));
-  Ptr<MobilityModel> parentMobility = mr.Get (0)->GetObject<MobilityModel> ();
-  Vector pos =  parentMobility->GetPosition ();
-  Ptr<ListPositionAllocator> positionAllocMnn =
-    CreateObject<ListPositionAllocator> ();
-  pos.x = 5;
-  pos.y = 20;
-  positionAllocMnn->Add (pos);
-  mobility.SetPositionAllocator (positionAllocMnn);
-  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.Install (mnn);
 
   WifiHelper wifi = WifiHelper::Default ();
   YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
@@ -132,31 +116,23 @@ int main (int argc, char *argv[])
   devices = csma.Install (NodeContainer (ar.Get (0), ha.Get (0), ar.Get (1)));
 
   phy.SetChannel (phyChannel.Create ());
-  devices = wifi.Install (phy, mac, NodeContainer (ar.Get (0), mr, ar.Get (1)));
-
-  phy.SetChannel (phyChannel.Create ());
-  NetDeviceContainer mnp_devices = wifi.Install (phy, mac, NodeContainer (mr.Get (0), mnn.Get (0)));
+  devices = wifi.Install (phy, mac, NodeContainer (ar.Get (0), mn, ar.Get (1)));
 
   NetDeviceContainer cn_devices = csma.Install (NodeContainer (ar.Get (0), cn.Get (0)));
 
-  DceManagerHelper processManager;
-  //  processManager.SetLoader ("ns3::DlmLoaderFactory");
-  processManager.SetTaskManagerAttribute ("FiberManagerType",
+  DceManagerHelper dceMng;
+  DceApplicationHelper dce;
+  dceMng.SetLoader ("ns3::DlmLoaderFactory");
+  dceMng.SetTaskManagerAttribute ("FiberManagerType",
                                           EnumValue (0));
-  processManager.SetNetworkStack ("ns3::LinuxSocketFdFactory",
-                                  "Library", StringValue ("libnet-next-2.6.so"));
-  processManager.Install (mr);
-  processManager.Install (ha);
-  processManager.Install (ar);
+  dceMng.SetNetworkStack ("ns3::LinuxSocketFdFactory",
+                       "Library", StringValue ("libnet-next-2.6.so"));
+  dceMng.Install (mn);
+  dceMng.Install (ha);
+  dceMng.Install (ar);
 
   // Prefix configuration
   std::string ha_sim0 ("2001:1:2:3::1/64");
-  std::string mnp1 ("2001:1:2:5::1");
-  std::string mnp2 ("2001:1:2:8::1");
-
-  std::vector <std::string> *mnps = new std::vector <std::string>;
-  mnps->push_back (mnp1);
-  mnps->push_back (mnp2);
 
   // For HA
   AddAddress (ha.Get (0), Seconds (0.1), "sim0", ha_sim0.c_str ());
@@ -190,33 +166,23 @@ int main (int argc, char *argv[])
   RunIp (ar.Get (1), Seconds (0.11), "link set sim0 up");
   AddAddress (ar.Get (1), Seconds (0.12), "sim1", "2001:1:2:7::2/64");
   RunIp (ar.Get (1), Seconds (0.13), "link set sim1 up");
-  std::ostringstream oss;
-  oss << "-6 route add " << mnp1 << "/64 via 2001:1:2:3::1 dev sim0";
-  RunIp (ar.Get (1), Seconds (0.15), oss.str ());
   RunIp (ar.Get (1), Seconds (0.15), "route show table all");
   kern = ar.Get (1)->GetObject<LinuxSocketFdFactory>();
   Simulator::ScheduleWithContext (ar.Get (1)->GetId (), Seconds (0.1),
                                   MakeEvent (&LinuxSocketFdFactory::Set, kern,
                                              ".net.ipv6.conf.all.forwarding", "1"));
 
-  // For MR
-  for (uint32_t i = 0; i < mr.GetN (); i++)
-    {
-      RunIp (mr.Get (i), Seconds (0.11), "link set lo up");
-      RunIp (mr.Get (i), Seconds (0.11), "link set sim0 up");
-      RunIp (mr.Get (i), Seconds (3.0), "link set ip6tnl0 up");
-      //      RunIp (mr.Get (i), Seconds (3.1), "addr list");
-      oss.str ("");
-      oss << mnps->at (i) << "/64";
-      AddAddress (mr.Get (i), Seconds (0.12), "sim1", oss.str ().c_str ());
-      RunIp (mr.Get (i), Seconds (0.13), "link set sim1 up");
-    }
+  // For MN
+  RunIp (mn.Get (0), Seconds (0.11), "link set lo up");
+  RunIp (mn.Get (0), Seconds (0.11), "link set sim0 up");
+  RunIp (mn.Get (0), Seconds (3.0), "link set ip6tnl0 up");
+  //      RunIp (mn.Get (0), Seconds (3.1), "addr list");
 
   RunIp (ha.Get (0), Seconds (4.0), "addr list");
   RunIp (ar.Get (0), Seconds (4.1), "addr list");
-  RunIp (mr.Get (0), Seconds (4.2), "addr list");
+  RunIp (mn.Get (0), Seconds (40.2), "addr list");
   RunIp (ha.Get (0), Seconds (20.0), "route show table all");
-  RunIp (mr.Get (0), Seconds (20.0), "route show table all");
+  RunIp (mn.Get (0), Seconds (50.0), "route show table all");
 
   {
     ApplicationContainer apps;
@@ -224,26 +190,16 @@ int main (int argc, char *argv[])
     Mip6dHelper mip6d;
 
     // HA
-    mip6d.AddHaServedPrefix (ha.Get (0), Ipv6Address ("2001:1:2::"), Ipv6Prefix (48));
     mip6d.EnableHA (ha);
     mip6d.Install (ha);
 
-    // MR
-    for (uint32_t i = 0; i < mr.GetN (); i++)
-      {
-        mip6d.AddMobileNetworkPrefix (mr.Get (i), Ipv6Address (mnps->at (i).c_str ()), Ipv6Prefix (64));
-        std::string ha_addr = ha_sim0;
-        ha_addr.replace (ha_addr.find ("/"), 3, "\0  ");
-        mip6d.AddHomeAgentAddress (mr.Get (i), Ipv6Address (ha_addr.c_str ()));
-        mip6d.AddHomeAddress (mr.Get (i), Ipv6Address ("2001:1:2:3::1000"), Ipv6Prefix (64));
-        mip6d.AddEgressInterface (mr.Get (i), "sim0");
-      }
-    mip6d.EnableMR (mr);
-    mip6d.Install (mr);
-
-    quagga.EnableRadvd (mr.Get (0), "sim1", "2001:1:2:5::/64");
-    quagga.EnableZebraDebug (mr);
-    quagga.Install (mr);
+    // MN
+    std::string ha_addr = ha_sim0;
+    ha_addr.replace (ha_addr.find ("/"), 3, "\0  ");
+    mip6d.AddHomeAgentAddress (mn.Get (0), Ipv6Address (ha_addr.c_str ()));
+    mip6d.AddHomeAddress (mn.Get (0), Ipv6Address ("2001:1:2:3::1000"), Ipv6Prefix (64));
+    mip6d.AddEgressInterface (mn.Get (0), "sim0");
+    mip6d.Install (mn);
 
     // AR
     quagga.EnableRadvd (ar.Get (0), "sim0", "2001:1:2:3::/64");
@@ -263,12 +219,9 @@ int main (int argc, char *argv[])
       /* Install IPv4/IPv6 stack */
       InternetStackHelper internetv6;
       internetv6.SetIpv4StackInstall (false);
-      internetv6.Install (mnn);
       internetv6.Install (cn);
 
       Ipv6AddressHelper ipv6;
-      Ipv6InterfaceContainer i1 = ipv6.AssignWithoutAddress (mnp_devices.Get (1));
-
       ipv6.NewNetwork (Ipv6Address ("2001:1:2:6::"), 64);
       Ipv6InterfaceContainer i2 = ipv6.Assign (cn_devices.Get (1));
 
@@ -282,18 +235,21 @@ int main (int argc, char *argv[])
       Time interPacketInterval = Seconds (1.);
       Ping6Helper ping6;
 
-      ping6.SetLocal (Ipv6Address::GetAny ());
-      ping6.SetRemote (i2.GetAddress (0, 1));
-
-      ping6.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
-      ping6.SetAttribute ("Interval", TimeValue (interPacketInterval));
-      ping6.SetAttribute ("PacketSize", UintegerValue (packetSize));
-      ApplicationContainer apps = ping6.Install (mnn.Get (0));
-      apps.Start (Seconds (2.0));
+      dce.SetBinary ("ping6");
+      dce.SetStackSize (1 << 16);
+      dce.ResetArguments ();
+      dce.ResetEnvironment ();
+      // dce.AddArgument ("-i");
+      // dce.AddArgument (interPacketInterval.GetSeconds ());
+      std::ostringstream oss;
+      oss << i2.GetAddress (0, 1);
+      dce.AddArgument (oss.str ());
+      ApplicationContainer apps = dce.Install (mn.Get (0));
+      apps.Start (Seconds (50.0));
     }
 
-  phy.EnablePcapAll ("dce-umip-nemo");
-  csma.EnablePcapAll ("dce-umip-nemo");
+  phy.EnablePcapAll ("dce-umip-cmip6");
+  csma.EnablePcapAll ("dce-umip-cmip6");
 
   Simulator::Stop (Seconds (300.0));
   Simulator::Run ();
