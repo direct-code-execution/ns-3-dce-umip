@@ -32,8 +32,6 @@ def configure(conf):
     conf.check(header_name='dirent.h', define_name='HAVE_DIRENT_H', mandatory=False)
 
     conf.env.append_value('LINKFLAGS', '-pthread')
-    conf.env.append_value('LINKFLAGS', '-Wl,--dynamic-linker=' +
-                             os.path.abspath ('../build/lib/ldso'))
     conf.check (lib='dl', mandatory = True)
     ns3waf.print_feature_summary(conf)
 
