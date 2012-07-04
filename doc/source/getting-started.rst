@@ -28,9 +28,9 @@ protocol.
 +------------------+--------------+---------------+
 |     NEMO         |     OK       |               |
 +------------------+--------------+---------------+
-|Proxy Mobile IPv6 |    (N/A)     |               |
+|Proxy Mobile IPv6 |    (N/A)     |  under dev.   |
 +------------------+--------------+---------------+
-|Dual-Stack MIP v6 |    (N/A)     |               |
+|Dual-Stack MIP v6 |    (N/A)     |  under dev.   |
 +------------------+--------------+---------------+
 
 
@@ -40,7 +40,7 @@ Getting Started
 Prerequisite
 ************
 UMIP support on DCE requires several packages:
-autoconf, automake, flex, git-core, wget, g++, libc-dbg, bison, indent, pkgconfig
+autoconf, automake, flex, git-core, wget, g++, libc-dbg, bison, indent, pkgconfig, libssl-dev, libsysfs-dev
 
 You need to install the correspondent packages in advance.
 
@@ -99,7 +99,7 @@ It's ready to install ns-3-dce-umip after all.
   $ hg clone http://code.nsnam.org/thehajime/ns-3-dce-umip
 
 
-You can build ns-3-dce-quagga as following:
+You can build ns-3-dce-umip as following:
 
 ::
 
@@ -158,9 +158,6 @@ if everything goes fine, you would see the output as follows.
   $
 
 
-
-OSPF
-####
 
 You will also see the packet exchange between Home Agent and Mobile
 Router from the generated pcap file.
