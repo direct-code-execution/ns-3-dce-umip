@@ -91,7 +91,11 @@ cd ns-3-dce-umip
 LD_LIBRARY_PATH=`pwd`/../build/lib DCE_PATH=`pwd`/../ns-3-dce/build/bin_dce \
     PKG_CONFIG_PATH=`pwd`/../build/lib/pkgconfig \
     ./waf configure --prefix=`pwd`/../build
+LD_LIBRARY_PATH=`pwd`/../build/lib DCE_PATH=`pwd`/../ns-3-dce/build/bin_dce \
+    PKG_CONFIG_PATH=`pwd`/../build/lib/pkgconfig \
 ./waf
+LD_LIBRARY_PATH=`pwd`/../build/lib DCE_PATH=`pwd`/../ns-3-dce/build/bin_dce \
+    PKG_CONFIG_PATH=`pwd`/../build/lib/pkgconfig \
 ./waf install
 
 if [ $TEST == "YES" ]
