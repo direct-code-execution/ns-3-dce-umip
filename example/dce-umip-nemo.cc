@@ -139,15 +139,15 @@ int main (int argc, char *argv[])
 
   NetDeviceContainer cn_devices = csma.Install (NodeContainer (ar.Get (0), cn.Get (0)));
 
-  DceManagerHelper processManager;
-  //  processManager.SetLoader ("ns3::DlmLoaderFactory");
-  processManager.SetTaskManagerAttribute ("FiberManagerType",
-                                          EnumValue (0));
-  processManager.SetNetworkStack ("ns3::LinuxSocketFdFactory",
+  DceManagerHelper dceMng;
+  //  dceMng.SetLoader ("ns3::DlmLoaderFactory");
+  dceMng.SetTaskManagerAttribute ("FiberManagerType",
+                                  EnumValue (0));
+  dceMng.SetNetworkStack ("ns3::LinuxSocketFdFactory",
                                   "Library", StringValue ("libnet-next-2.6.so"));
-  processManager.Install (mr);
-  processManager.Install (ha);
-  processManager.Install (ar);
+  dceMng.Install (mr);
+  dceMng.Install (ha);
+  dceMng.Install (ar);
 
   // Prefix configuration
   std::string ha_sim0 ("2001:1:2:3::1/64");

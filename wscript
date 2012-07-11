@@ -10,10 +10,6 @@ import sys
 def options(opt):
     opt.tool_options('compiler_cc') 
     ns3waf.options(opt)
-    opt.add_option('--enable-kernel-stack',
-                   help=('Path to the prefix where the kernel wrapper headers are installed'),
-                   default=None,
-                   dest='kernel_stack', type="string")
 
 def configure(conf):
     ns3waf.check_modules(conf, ['dce'], mandatory = True)
@@ -24,12 +20,6 @@ def configure(conf):
     ns3waf.check_modules(conf, ['point-to-point-layout'], mandatory = False)
     ns3waf.check_modules(conf, ['topology-read', 'applications', 'visualizer'], mandatory = False)
     conf.check_tool('compiler_cc')
-    conf.check(header_name='stdint.h', define_name='HAVE_STDINT_H', mandatory=False)
-    conf.check(header_name='inttypes.h', define_name='HAVE_INTTYPES_H', mandatory=False)
-    conf.check(header_name='sys/inttypes.h', define_name='HAVE_SYS_INT_TYPES_H', mandatory=False)
-    conf.check(header_name='sys/types.h', define_name='HAVE_SYS_TYPES_H', mandatory=False)
-    conf.check(header_name='sys/stat.h', define_name='HAVE_SYS_STAT_H', mandatory=False)
-    conf.check(header_name='dirent.h', define_name='HAVE_DIRENT_H', mandatory=False)
 
     conf.env.append_value('LINKFLAGS', '-pthread')
     conf.check (lib='dl', mandatory = True)
@@ -50,7 +40,7 @@ def dce_kw(**kw):
     d['linkflags'] = d.get('linkflags', []) + ['-pie'] + debug_dl
     return d
 
-def build_dce_tests(module, kern):
+def build_dce_tests(module):
     module.add_runner_test(needed=['core', 'dce-quagga', 'internet', 'csma', 'dce-umip'],
                            source=['test/dce-umip-test.cc'])
 
@@ -98,6 +88,6 @@ def build(bld):
                                   use=uselib,
                                   lib=['dl'])
 
-    build_dce_tests(module, bld.env['KERNEL_STACK'])
+    build_dce_tests(module)
     build_dce_examples(module)
     build_dce_kernel_examples(module)

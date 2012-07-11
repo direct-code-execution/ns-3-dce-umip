@@ -1,5 +1,7 @@
 #!/bin/bash
 DSMIP=NO
+TEST=NO
+
 cd `dirname $BASH_SOURCE`/../..
 
 # build umip
@@ -13,50 +15,25 @@ cd ..
 
 
 # mode ns-3-dev (FIXME)
-cd ns-3-dev
-sed "s/NS_ASSERT_MSG (nextHeaderPosition/\/\/NS_ASSERT_MSG (nextHeaderPosition/" src/internet/model/ipv6-l3-protocol.cc >a
-mv a src/internet/model/ipv6-l3-protocol.cc
-./waf
-./waf install
-cd ..
+#cd ns-3-dev
+#sed "s/NS_ASSERT_MSG (nextHeaderPosition/\/\/NS_ASSERT_MSG (nextHeaderPosition/" src/internet/model/ipv6-l3-protocol.cc >a
+#mv a src/internet/model/ipv6-l3-protocol.cc
+#./waf
+#./waf install
+#cd ..
 
-# mod ns-3-dce
-cd ns-3-dce-patches
-hg pull -u
-cd ..
-cd ns-3-dce
-WAF_KERNEL=--enable-kernel-stack=`pwd`/../ns-3-linux
-
-patch -p1 < ../ns-3-dce-patches/120410-dce-umip-support.patch
-. ./utils/setenv.sh
-./waf configure --prefix=`pwd`/../build --verbose $WAF_KERNEL
-./waf
-./waf install
-cd ..
-
-# mod ns-3-linux
-hg clone http://code.nsnam.org/thehajime/ns-3-linux-patches/
-cd ns-3-linux-patches
-hg pull -u
-cd ..
-cd ns-3-linux
-patch -p1 < ../ns-3-linux-patches/120410-linux-umip-support.patch
-
-if [ "YES" == $(DSMIP) ] 
+# build umip-dsmip6
+if [ "YES" == $DSMIP ] 
+then
+  cd ns-3-linux
   cd net-next-2.6
   patch -p1 < ../kernel-dsmip6.patch
   cd ..
-fi
 
-make clean
-rm -f config
-make config
-CFLAGS+="-DCONFIG_NETDEVICES" make
-cd ..
+  make clean
+  CFLAGS+="-DCONFIG_NETDEVICES" make
+  cd ..
 
-# build umip-dsmip6
-if [ "YES" == $(DSMIP) ] 
-then
   ##wget ftp://ftp.linux-ipv6.org/pub/usagi/patch/mipv6/umip-0.4/daemon/tarball/mipv6-daemon-umip-0.4.tar.gz
   wget http://repository.timesys.com/buildsources/m/mipv6-daemon-umip/mipv6-daemon-umip-0.4/mipv6-daemon-umip-0.4.tar.gz
   wget http://software.nautilus6.org/packages/DSMIP/umip-dsmip-20080530.tar.bz2
@@ -111,12 +88,18 @@ fi
 
 # build ns-3-dce-umip
 cd ns-3-dce-umip
-. ../ns-3-dce/utils/setenv.sh
-cd ../ns-3-dce-umip
-./waf configure --prefix=`pwd`/../build --verbose $WAF_KERNEL
+LD_LIBRARY_PATH=`pwd`/../build/lib DCE_PATH=`pwd`/../ns-3-dce/build/bin_dce \
+    PKG_CONFIG_PATH=`pwd`/../build/lib/pkgconfig \
+    ./waf configure --prefix=`pwd`/../build
 ./waf
 ./waf install
-echo Launch NS3UMIPTEST-DCE
-./build/bin/ns3test-dce-umip --verbose
+
+if [ $TEST == "YES" ]
+then
+    echo Launch NS3UMIPTEST-DCE
+    LD_LIBRARY_PATH=`pwd`/../build/lib DCE_PATH=`pwd`/../ns-3-dce/build/bin_dce:`pwd`/../build/bin \
+	PKG_CONFIG_PATH=`pwd`/../build/lib/pkgconfig \
+	./build/bin/ns3test-dce-umip --verbose
+fi
 
 

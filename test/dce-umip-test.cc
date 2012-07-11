@@ -70,7 +70,7 @@ static void AddAddress (Ptr<Node> node, Time at, const char *name, const char *a
 class DceUmipTestCase : public TestCase
 {
 public:
-  DceUmipTestCase (std::string testname, Time maxDuration, bool useK);
+  DceUmipTestCase (std::string testname, Time maxDuration);
   void CsmaRxCallback (std::string context, Ptr<const Packet> packet);
 private:
   virtual void DoRun (void);
@@ -78,7 +78,6 @@ private:
 
   std::string m_testname;
   Time m_maxDuration;
-  bool m_useKernel;
   bool m_pingStatus;
   bool m_debug;
 };
@@ -111,6 +110,12 @@ DceUmipTestCase::CsmaRxCallback (std::string context, Ptr<const Packet> original
       break;
     case 0x86DD:   //IPv6
       packet->RemoveHeader (v6hdr);
+      // if the next header is ipv6, it's ip6-in-ip6
+      if (v6hdr.GetNextHeader () == Ipv6Header::IPV6_IPV6)
+        {
+          Ipv6Header v6hdr_2;
+          packet->RemoveHeader (v6hdr_2);
+        }
       packet->RemoveHeader (icmp6hdr);
       if (icmp6hdr.GetType () == Icmpv6Header::ICMPV6_ECHO_REPLY)
         {
@@ -121,15 +126,17 @@ DceUmipTestCase::CsmaRxCallback (std::string context, Ptr<const Packet> original
       break;
     }
 
-  //  std::cout << context << " " << packet << " protocol " << protocol << std::endl;
+  if (m_debug)
+    {
+      std::cout << context << " " << packet << " protocol " << protocol << std::endl;
+    }
 }
 
-DceUmipTestCase::DceUmipTestCase (std::string testname, Time maxDuration, bool useK)
+DceUmipTestCase::DceUmipTestCase (std::string testname, Time maxDuration)
   : TestCase ("Check that process \"" + testname
-              + (useK ? "-kernel" : "-ns3") + "\" completes correctly."),
+              + "\" completes correctly."),
     m_testname (testname),
     m_maxDuration (maxDuration),
-    m_useKernel (useK),
     m_pingStatus (false),
     m_debug (false)
 {
@@ -167,15 +174,16 @@ DceUmipTestCase::DoRun (void)
   //
 
   std::string ha_sim0 ("2001:1:2:3::1/64");
-  DceManagerHelper processManager;
-  //      processManager.SetLoader ("ns3::DlmLoaderFactory");
-  processManager.SetTaskManagerAttribute ("FiberManagerType",
-                                          EnumValue (0));
-  processManager.SetNetworkStack ("ns3::LinuxSocketFdFactory",
-                                  "Library", StringValue ("libnet-next-2.6.so"));
-  processManager.Install (ha);
-  processManager.Install (mr);
-  processManager.Install (ar);
+  DceManagerHelper dceMng;
+  //      dceMng.SetLoader ("ns3::DlmLoaderFactory");
+  dceMng.SetTaskManagerAttribute ("FiberManagerType",
+                                  EnumValue (0));
+  dceMng.SetNetworkStack ("ns3::LinuxSocketFdFactory",
+                          "Library", StringValue ("libnet-next-2.6.so"));
+  dceMng.Install (ha);
+  dceMng.Install (mr);
+  dceMng.Install (ar);
+  dceMng.Install (mnn);
 
   // For HA or LMA
   AddAddress (ha.Get (0), Seconds (0.1), "sim0", ha_sim0.c_str ());
@@ -205,12 +213,16 @@ DceUmipTestCase::DoRun (void)
   AddAddress (mr.Get (0), Seconds (0.12), "sim1", "2001:1:2:5::1/64");
   RunIp (mr.Get (0), Seconds (0.13), "link set sim1 up");
 
+  // For MNN
+  RunIp (mnn.Get (0), Seconds (0.11), "link set lo up");
+  RunIp (mnn.Get (0), Seconds (0.11), "link set sim0 up");
+
 
 
 
   if (m_debug)
     {
-      csma.EnablePcapAll ("dce-umip-test-" + m_testname + "-" + (m_useKernel ? "kern" : "ns3"));
+      csma.EnablePcapAll ("dce-umip-test-" + m_testname);
     }
 
   //
@@ -221,7 +233,10 @@ DceUmipTestCase::DoRun (void)
   Mip6dHelper mip6d;
 
   // HA
-  mip6d.AddHaServedPrefix (ha.Get (0), Ipv6Address ("2001:1:2::"), Ipv6Prefix (48));
+  if (m_testname == "NEMO")
+    {
+      mip6d.AddHaServedPrefix (ha.Get (0), Ipv6Address ("2001:1:2::"), Ipv6Prefix (48));
+    }
   mip6d.EnableHA (ha);
   mip6d.Install (ha);
 
@@ -232,7 +247,10 @@ DceUmipTestCase::DoRun (void)
   mip6d.AddHomeAgentAddress (mr.Get (0), Ipv6Address (ha_addr.c_str ()));
   mip6d.AddHomeAddress (mr.Get (0), Ipv6Address ("2001:1:2:3::1000"), Ipv6Prefix (64));
   mip6d.AddEgressInterface (mr.Get (0), "sim0");
-  mip6d.EnableMR (mr);
+  if (m_testname == "NEMO")
+    {
+      mip6d.EnableMR (mr);
+    }
   mip6d.Install (mr);
 
   quagga.EnableRadvd (mr.Get (0), "sim1", "2001:1:2:5::/64");
@@ -256,19 +274,14 @@ DceUmipTestCase::DoRun (void)
   // Set up ping application
   //
   // MNN
-  if (m_debug)
-    {
-      LogComponentEnable ("Ping6Application", LOG_LEVEL_INFO);
-    }
   // Ping6
   /* Install IPv4/IPv6 stack */
+  DceApplicationHelper dce;
   InternetStackHelper internetv6;
   internetv6.SetIpv4StackInstall (false);
-  internetv6.Install (mnn);
   internetv6.Install (cn);
 
   Ipv6AddressHelper ipv6;
-  Ipv6InterfaceContainer i1 = ipv6.AssignWithoutAddress (mnp_devices.Get (1));
 
   ipv6.NewNetwork (Ipv6Address ("2001:1:2:6::"), 64);
   Ipv6InterfaceContainer i2 = ipv6.Assign (cn_devices.Get (1));
@@ -281,21 +294,34 @@ DceUmipTestCase::DoRun (void)
   uint32_t packetSize = 1024;
   uint32_t maxPacketCount = 50000000;
   Time interPacketInterval = Seconds (1.);
-  Ping6Helper ping6;
 
-  ping6.SetLocal (Ipv6Address::GetAny ());
-  ping6.SetRemote (i2.GetAddress (0, 1));
+  dce.SetBinary ("ping6");
+  dce.SetStackSize (1 << 16);
+  dce.ResetArguments ();
+  dce.ResetEnvironment ();
+  // dce.AddArgument ("-i");
+  // dce.AddArgument (interPacketInterval.GetSeconds ());
+  std::ostringstream oss;
+  oss << i2.GetAddress (0, 1);
+  dce.AddArgument (oss.str ());
+  ApplicationContainer apps;
+  if (m_testname == "MIP6")
+    {
+      apps = dce.Install (mr.Get (0));
+      // Configure Validity Check Parser
+      Config::Connect ("/NodeList/2/DeviceList/0/$ns3::CsmaNetDevice/MacRx",
+                       MakeCallback (&DceUmipTestCase::CsmaRxCallback, this));
+    }
+  else if (m_testname == "NEMO")
+    {
+      apps = dce.Install (mnn.Get (0));
+      // Configure Validity Check Parser
+      Config::Connect ("/NodeList/4/DeviceList/0/$ns3::CsmaNetDevice/MacRx",
+                       MakeCallback (&DceUmipTestCase::CsmaRxCallback, this));
+    }
+  apps.Start (Seconds (8.0));
 
-  ping6.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
-  ping6.SetAttribute ("Interval", TimeValue (interPacketInterval));
-  ping6.SetAttribute ("PacketSize", UintegerValue (packetSize));
-  ApplicationContainer apps = ping6.Install (mnn.Get (0));
-  apps.Start (Seconds (2.0));
 
-
-  // Configure Validity Check Parser
-  Config::Connect ("/NodeList/4/DeviceList/0/$ns3::CsmaNetDevice/MacRx",
-                   MakeCallback (&DceUmipTestCase::CsmaRxCallback, this));
   //
   // Step 4
   // Now It's ready to GO!
@@ -312,12 +338,11 @@ DceUmipTestCase::DoRun (void)
   // Step 5
   // Vetify the test
   //
-  NS_TEST_ASSERT_MSG_EQ (m_pingStatus, true, "Umip test " << m_testname  << " with " <<
-                         (m_useKernel ? "kernel" : "ns3") << " did not return successfully: " << g_testError);
+  NS_TEST_ASSERT_MSG_EQ (m_pingStatus, true, "Umip test " << m_testname
+                         << " did not return successfully: " << g_testError);
   if (m_debug)
     {
-      OUTPUT ("Umip test " << m_testname << " with " <<
-              (m_useKernel ? "kernel" : "ns3")
+      OUTPUT ("Umip test " << m_testname
               << " stack done. status = " << m_pingStatus);
 
     }
@@ -339,18 +364,18 @@ DceUmipTestSuite::DceUmipTestSuite ()
   {
     const char *name;
     int duration;
-    bool useKernel;
   } testPair;
 
   const testPair tests[] = {
-    { "NEMO", 30, true},
+    { "MIP6", 30},
+    { "NEMO", 30},
   };
 
   ::system ("/bin/rm -rf files-*");
   for (unsigned int i = 0; i < sizeof(tests) / sizeof(testPair); i++)
     {
       AddTestCase (new DceUmipTestCase (std::string (tests[i].name),
-                                          Seconds (tests[i].duration), tests[i].useKernel));
+                                        Seconds (tests[i].duration)));
     }
 }
 
