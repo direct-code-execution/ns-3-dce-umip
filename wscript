@@ -12,7 +12,7 @@ def options(opt):
     ns3waf.options(opt)
 
 def configure(conf):
-    ns3waf.check_modules(conf, ['dce'], mandatory = True)
+    ns3waf.check_modules(conf, ['dce', 'netlink'], mandatory = True)
     ns3waf.check_modules(conf, ['dce-quagga'], mandatory = True)
     ns3waf.check_modules(conf, ['core', 'network', 'internet'], mandatory = True)
     ns3waf.check_modules(conf, ['point-to-point', 'tap-bridge', 'netanim'], mandatory = False)

@@ -15,12 +15,12 @@ cd ..
 
 
 # mode ns-3-dev (FIXME)
-#cd ns-3-dev
-#sed "s/NS_ASSERT_MSG (nextHeaderPosition/\/\/NS_ASSERT_MSG (nextHeaderPosition/" src/internet/model/ipv6-l3-protocol.cc >a
-#mv a src/internet/model/ipv6-l3-protocol.cc
-#./waf
-#./waf install
-#cd ..
+cd ns-3-dev
+sed "s/NS_ASSERT_MSG (nextHeaderPosition/\/\/NS_ASSERT_MSG (nextHeaderPosition/" src/internet/model/ipv6-l3-protocol.cc >a
+mv a src/internet/model/ipv6-l3-protocol.cc
+./waf
+./waf install
+cd ..
 
 # build umip-dsmip6
 if [ "YES" == $DSMIP ] 
