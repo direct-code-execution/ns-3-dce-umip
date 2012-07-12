@@ -264,7 +264,7 @@ DceUmipTestCase::DoRun (void)
   quagga.EnableRadvd (ar.Get (0), "sim2", "2001:1:2:6::/64");
   quagga.EnableZebraDebug (ar);
   quagga.Install (ar);
-  Ptr<LinuxSocketFdFactory> kern = ar.Get (0)->GetObject<LinuxSocketFdFactory>();
+  Ptr<LinuxSocketFdFactory> kern = ar.Get (0)->GetObject<LinuxSocketFdFactory> ();
   Simulator::ScheduleWithContext (ar.Get (0)->GetId (), Seconds (0.1),
                                   MakeEvent (&LinuxSocketFdFactory::Set, kern,
                                              ".net.ipv6.conf.all.forwarding", "1"));
@@ -339,11 +339,11 @@ DceUmipTestCase::DoRun (void)
   // Vetify the test
   //
   NS_TEST_ASSERT_MSG_EQ (m_pingStatus, true, "Umip test " << m_testname
-                         << " did not return successfully: " << g_testError);
+                                                          << " did not return successfully: " << g_testError);
   if (m_debug)
     {
       OUTPUT ("Umip test " << m_testname
-              << " stack done. status = " << m_pingStatus);
+                           << " stack done. status = " << m_pingStatus);
 
     }
 
