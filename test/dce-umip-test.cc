@@ -346,6 +346,10 @@ DceUmipTestCase::DoRun (void)
               << " stack done. status = " << m_pingStatus);
 
     }
+
+  // XXX: needs to remove files
+  ::system ("/bin/rm -rf files-*");
+
 }
 
 static class DceUmipTestSuite : public TestSuite
