@@ -7,9 +7,10 @@ cd `dirname $BASH_SOURCE`/../..
 # build umip
 git clone git://git.umip.org/umip.git
 cd umip
-autoreconf -i
-CFLAGS="-fPIC -g" CXXFLAGS="-fPIC -g" LDFLAGS="-pie -g" ./configure --enable-vt --with-builtin-crypto
-make
+autoreconf -i || { echo "[Error] mip6d autoreconf" ; exit 1 ; }
+CFLAGS="-fPIC -g" CXXFLAGS="-fPIC -g" LDFLAGS="-pie -g" ./configure --enable-vt --with-builtin-crypto \
+     || { echo "[Error] mip6d configure" ; exit 1 ; }
+make || { echo "[Error] mip6d make" ; exit 1 ; }
 cp -f src/mip6d  ../ns-3-dce/build/bin_dce
 cd ..
 
