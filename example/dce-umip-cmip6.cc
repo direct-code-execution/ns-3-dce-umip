@@ -122,7 +122,7 @@ int main (int argc, char *argv[])
 
   DceManagerHelper dceMng;
   DceApplicationHelper dce;
-  dceMng.SetLoader ("ns3::DlmLoaderFactory");
+  // dceMng.SetLoader ("ns3::DlmLoaderFactory");
   dceMng.SetTaskManagerAttribute ("FiberManagerType",
                                           EnumValue (0));
   dceMng.SetNetworkStack ("ns3::LinuxSocketFdFactory",
