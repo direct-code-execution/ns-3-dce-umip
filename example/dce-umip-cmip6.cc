@@ -92,14 +92,16 @@ int main (int argc, char *argv[])
 
   Ptr<ns3::RandomDiscPositionAllocator> r_position =
     CreateObject<RandomDiscPositionAllocator> ();
+  Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();                                x->SetAttribute ("Min", DoubleValue (0.0));
+  x->SetAttribute ("Max", DoubleValue (200.0));
   r_position->SetX (100);
   r_position->SetY (50);
-  r_position->SetRho (UniformVariable (200, 0));
+  r_position->SetRho (x);
   mobility.SetPositionAllocator (r_position);
   mobility.SetMobilityModel ("ns3::RandomDirection2dMobilityModel",
                              "Bounds", RectangleValue (Rectangle (0, 200, 30, 60)),
-                             "Speed", RandomVariableValue (ConstantVariable (10)),
-                             "Pause", RandomVariableValue (ConstantVariable (0.2)));
+                             "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=10.0]"),
+                             "Pause", StringValue ("ns3::ConstantRandomVariable[Constant=0.2]"));
   //  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (mn);
 
