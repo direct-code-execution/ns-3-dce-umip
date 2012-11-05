@@ -207,7 +207,7 @@ DceUmipTestCase::DoRun (void)
 
   // For MR or MAG
   RunIp (mr.Get (0), Seconds (0.11), "link set lo up");
-  RunIp (mr.Get (0), Seconds (0.11), "link set sim0 up");
+  RunIp (mr.Get (0), Seconds (4.11), "link set sim0 up");
   RunIp (mr.Get (0), Seconds (3.0), "link set ip6tnl0 up");
   //      RunIp (mr.Get (0), Seconds (3.1), "addr list");
   AddAddress (mr.Get (0), Seconds (0.12), "sim1", "2001:1:2:5::1/64");
@@ -319,7 +319,7 @@ DceUmipTestCase::DoRun (void)
       Config::Connect ("/NodeList/4/DeviceList/0/$ns3::CsmaNetDevice/MacRx",
                        MakeCallback (&DceUmipTestCase::CsmaRxCallback, this));
     }
-  apps.Start (Seconds (8.0));
+  apps.Start (Seconds (10.0));
 
 
   //
@@ -348,7 +348,17 @@ DceUmipTestCase::DoRun (void)
     }
 
   // XXX: needs to remove files
-  ::system ("/bin/rm -rf files-*");
+  if (m_debug)
+    {
+      ::system (("/bin/mv -f files-0 files-0-" + m_testname).c_str ());
+      ::system (("/bin/mv -f files-1 files-1-" + m_testname).c_str ());
+      ::system (("/bin/mv -f files-2 files-2-" + m_testname).c_str ());
+      ::system (("/bin/mv -f files-4 files-4-" + m_testname).c_str ());
+    }
+  else
+    {
+      ::system ("/bin/rm -rf files-*");
+    }
 
 }
 
