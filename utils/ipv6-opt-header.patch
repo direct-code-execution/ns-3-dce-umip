@@ -1,0 +1,12 @@
+diff -r 87776c9cd0ba src/internet/model/ipv6-l3-protocol.cc
+--- a/src/internet/model/ipv6-l3-protocol.cc	Tue Dec 11 13:18:09 2012 +0900
++++ b/src/internet/model/ipv6-l3-protocol.cc	Wed Dec 12 10:13:28 2012 +0900
+@@ -982,7 +982,7 @@
+       nextHeader = buf[0];
+       nextHeaderPosition = buf[1];
+       NS_ASSERT_MSG (nextHeader != Ipv6Header::IPV6_EXT_HOP_BY_HOP, "Double Ipv6Header::IPV6_EXT_HOP_BY_HOP in packet, aborting");
+-      NS_ASSERT_MSG (nextHeaderPosition != 0, "Zero-size IPv6 Option Header, aborting");
++      //NS_ASSERT_MSG (nextHeaderPosition != 0, "Zero-size IPv6 Option Header, aborting");
+     }
+ 
+   /* process all the extensions found and the layer 4 protocol */
