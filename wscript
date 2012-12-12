@@ -89,5 +89,6 @@ def build(bld):
                                   lib=['dl'])
 
     build_dce_tests(module)
+    bld.install_files('${PREFIX}/bin', 'build/bin/ns3test-dce-umip', chmod=0755 )
     build_dce_examples(module)
     build_dce_kernel_examples(module)
