@@ -355,10 +355,6 @@ DceUmipTestCase::DoRun (void)
       ::system (("/bin/mv -f files-2 files-2-" + m_testname).c_str ());
       ::system (("/bin/mv -f files-4 files-4-" + m_testname).c_str ());
     }
-  else
-    {
-      ::system ("/bin/rm -rf files-*");
-    }
 
 }
 
@@ -385,7 +381,6 @@ DceUmipTestSuite::DceUmipTestSuite ()
     { "NEMO", 30},
   };
 
-  ::system ("/bin/rm -rf files-*");
   for (unsigned int i = 0; i < sizeof(tests) / sizeof(testPair); i++)
     {
       AddTestCase (new DceUmipTestCase (std::string (tests[i].name),
