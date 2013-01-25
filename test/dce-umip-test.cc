@@ -15,6 +15,30 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ * Simulation Topology:
+ * Scenario: MR and MNN moves from under AR1 to AR2 with Care-of-Address
+ *           alternation. during movement, MNN keeps ping6 to CN.
+ *
+ *                                    +-----------+
+ *                                    |    HA     |
+ *                                    +-----------+
+ *                                         |sim0
+ *                              +----------+------------+
+ *                              |sim0                   |sim0
+ *      +--------+     sim2+----+---+              +----+---+
+ *      |   CN   |  - - - -|   AR1  |              |   AR2  |
+ *      +--------+         +---+----+              +----+---+
+ *                             |sim1                    |sim1
+ *                             |                        |
+ *
+ *                               sim0                     sim0
+ *                        +----+------+  (Movement) +----+-----+
+ *                        |    MR     |   <=====>   |    MR    |
+ *                        +-----------+             +----------+
+ *                             |sim1                     |sim1
+ *                        +---------+               +---------+
+ *                        |   MNN   |               |   MNN   |
+ *                        +---------+               +---------+
  * Author: Hajime Tazaki <tazaki@nict.go.jp>
  */
 
@@ -23,6 +47,10 @@
 #include "ns3/internet-module.h"
 #include "ns3/dce-module.h"
 #include "ns3/quagga-helper.h"
+#include "ns3/wifi-helper.h"
+#include "ns3/yans-wifi-helper.h"
+#include "ns3/nqos-wifi-mac-helper.h"
+#include "ns3/mobility-module.h"
 #include "ns3/csma-helper.h"
 #include "ns3/mip6d-helper.h"
 #include "ns3/ping6-helper.h"
@@ -71,7 +99,7 @@ class DceUmipTestCase : public TestCase
 {
 public:
   DceUmipTestCase (std::string testname, Time maxDuration);
-  void CsmaRxCallback (std::string context, Ptr<const Packet> packet);
+  void WifiRxCallback (std::string context, Ptr<const Packet> packet);
 private:
   virtual void DoRun (void);
   static void Finished (int *pstatus, uint16_t pid, int status);
@@ -83,32 +111,33 @@ private:
 };
 
 void
-DceUmipTestCase::CsmaRxCallback (std::string context, Ptr<const Packet> originalPacket)
+DceUmipTestCase::WifiRxCallback (std::string context, Ptr<const Packet> originalPacket)
 {
   if (m_pingStatus)
     {
       return;
     }
-  uint16_t protocol;
   Ptr<Packet> packet = originalPacket->Copy ();
-  EthernetHeader header (false);
-  packet->RemoveHeader (header);
-  protocol = header.GetLengthType ();
+
   Ipv4Header v4hdr;
   Icmpv4Header icmphdr;
   Ipv6Header v6hdr;
   Icmpv6Header icmp6hdr;
-  switch (protocol)
+
+#if 0
+  if (packet->PeekHeader (v4hdr) != 0)
     {
-    case 0x0800:   //IPv4
       packet->RemoveHeader (v4hdr);
       packet->RemoveHeader (icmphdr);
       if (icmphdr.GetType () == Icmpv4Header::ECHO_REPLY)
         {
           m_pingStatus = true;
         }
-      break;
-    case 0x86DD:   //IPv6
+    }
+  else 
+#endif
+    if (packet->PeekHeader (v6hdr) != 0)
+    {
       packet->RemoveHeader (v6hdr);
       // if the next header is ipv6, it's ip6-in-ip6
       if (v6hdr.GetNextHeader () == Ipv6Header::IPV6_IPV6)
@@ -121,14 +150,13 @@ DceUmipTestCase::CsmaRxCallback (std::string context, Ptr<const Packet> original
         {
           m_pingStatus = true;
         }
-      break;
-    default:
-      break;
     }
 
   if (m_debug)
     {
-      std::cout << context << " " << packet << " protocol " << protocol << std::endl;
+      std::cout << context << " " << packet << std::endl;
+      packet->Print (std::cout);
+      std::cout << std::endl;
     }
 }
 
@@ -155,45 +183,101 @@ DceUmipTestCase::DoRun (void)
   //
   NodeContainer mr, ha, ar;
   ha.Create (1);
-  ar.Create (1);
+  ar.Create (2);
   mr.Create (1);
   NodeContainer mnn, cn;
   cn.Create (1);
   mnn.Create (1);
 
+  NetDeviceContainer devices;
+  MobilityHelper mobility;
+  Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+  positionAlloc->Add (Vector (75.0, -50.0, 0.0)); // HA
+  positionAlloc->Add (Vector (0.0, 10.0, 0.0)); // AR1
+  positionAlloc->Add (Vector (150.0, 10.0, 0.0)); // AR2
+  positionAlloc->Add (Vector (-50.0, 10.0, 0.0)); // CN
+  mobility.SetPositionAllocator (positionAlloc);
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.Install (ha);
+  mobility.Install (ar);
+  mobility.Install (cn);
+
+  Ptr<ns3::RandomDiscPositionAllocator> r_position =
+    CreateObject<RandomDiscPositionAllocator> ();
+  Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
+  x->SetAttribute ("Min", DoubleValue (0.0));
+  x->SetAttribute ("Max", DoubleValue (200.0));
+  r_position->SetX (10);
+  r_position->SetY (50);
+  r_position->SetRho (x);
+  mobility.SetPositionAllocator (r_position);
+  mobility.SetMobilityModel ("ns3::RandomDirection2dMobilityModel",
+                             "Bounds", RectangleValue (Rectangle (0, 200, 30, 60)),
+                             "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=10.0]"),
+                             "Pause", StringValue ("ns3::ConstantRandomVariable[Constant=0.2]"));
+  mobility.Install (mr);
+
+  mobility.PushReferenceMobilityModel (mr.Get (0));
+  Ptr<MobilityModel> parentMobility = mr.Get (0)->GetObject<MobilityModel> ();
+  Vector pos =  parentMobility->GetPosition ();
+  Ptr<ListPositionAllocator> positionAllocMnn =
+    CreateObject<ListPositionAllocator> ();
+  pos.x = 5;
+  pos.y = 20;
+  positionAllocMnn->Add (pos);
+  mobility.SetPositionAllocator (positionAllocMnn);
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.Install (mnn);
+
+  WifiHelper wifi = WifiHelper::Default ();
+  YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
+  YansWifiChannelHelper phyChannel = YansWifiChannelHelper::Default ();
+  NqosWifiMacHelper mac;
   CsmaHelper csma;
-  NetDeviceContainer devices, dev1, dev2;
-  devices = csma.Install (NodeContainer (ar, ha));
-  dev1 = csma.Install (NodeContainer (ar, mr));
-  NetDeviceContainer mnp_devices = csma.Install (NodeContainer (mr, mnn));
-  NetDeviceContainer cn_devices = csma.Install (NodeContainer (ar, cn));
+  phy.SetChannel (phyChannel.Create ());
+  mac.SetType ("ns3::AdhocWifiMac");
+  wifi.SetStandard (WIFI_PHY_STANDARD_80211a);
+
+  devices = csma.Install (NodeContainer (ar.Get (0), ha.Get (0), ar.Get (1)));
+
+  phy.SetChannel (phyChannel.Create ());
+  devices = wifi.Install (phy, mac, NodeContainer (ar.Get (0), mr, ar.Get (1)));
+
+  phy.SetChannel (phyChannel.Create ());
+  NetDeviceContainer mnp_devices = wifi.Install (phy, mac, NodeContainer (mr.Get (0), mnn.Get (0)));
+  NetDeviceContainer cn_devices = csma.Install (NodeContainer (ar.Get (0), cn.Get (0)));
 
   //
   // Step 2
   // Address Configuration
   //
 
-  std::string ha_sim0 ("2001:1:2:3::1/64");
   DceManagerHelper dceMng;
   //      dceMng.SetLoader ("ns3::DlmLoaderFactory");
   dceMng.SetTaskManagerAttribute ("FiberManagerType",
                                   EnumValue (0));
   dceMng.SetNetworkStack ("ns3::LinuxSocketFdFactory",
-                          "Library", StringValue ("libnet-next-2.6.so"));
+                          "Library", StringValue ("liblinux.so"));
   dceMng.Install (ha);
   dceMng.Install (mr);
   dceMng.Install (ar);
   dceMng.Install (mnn);
 
-  // For HA or LMA
+  // Prefix configuration
+  std::string ha_sim0 ("2001:1:2:3::1/64");
+
+  // For HA
   AddAddress (ha.Get (0), Seconds (0.1), "sim0", ha_sim0.c_str ());
   RunIp (ha.Get (0), Seconds (0.11), "link set lo up");
   RunIp (ha.Get (0), Seconds (0.11), "link set sim0 up");
   RunIp (ha.Get (0), Seconds (3.0), "link set ip6tnl0 up");
+  RunIp (ha.Get (0), Seconds (3.1), "addr list");
+  //  RunIp (ha.Get (0), Seconds (3.2), "-6 route add default via 2001:1:2:3::2 dev sim0");
   RunIp (ha.Get (0), Seconds (3.15), "-6 route add 2001:1:2:4::/64 via 2001:1:2:3::2 dev sim0");
   RunIp (ha.Get (0), Seconds (3.15), "-6 route add 2001:1:2:6::/64 via 2001:1:2:3::2 dev sim0");
+  RunIp (ha.Get (0), Seconds (3.15), "-6 route add 2001:1:2:7::/64 via 2001:1:2:3::3 dev sim0");
 
-  // For AR (the intermediate node)
+  // For AR1 (the intermediate node)
   AddAddress (ar.Get (0), Seconds (0.1), "sim0", "2001:1:2:3::2/64");
   RunIp (ar.Get (0), Seconds (0.11), "link set lo up");
   RunIp (ar.Get (0), Seconds (0.11), "link set sim0 up");
@@ -202,14 +286,29 @@ DceUmipTestCase::DoRun (void)
   AddAddress (ar.Get (0), Seconds (0.13), "sim2", "2001:1:2:6::2/64");
   RunIp (ar.Get (0), Seconds (0.14), "link set sim2 up");
   RunIp (ar.Get (0), Seconds (0.15), "-6 route add 2001:1:2::/48 via 2001:1:2:3::1 dev sim0");
-  //  RunIp (ar.Get (0), Seconds (0.15), "route show table all");
+  RunIp (ar.Get (0), Seconds (0.15), "route show table all");
+  Ptr<LinuxSocketFdFactory> kern = ar.Get (0)->GetObject<LinuxSocketFdFactory>();
+  Simulator::ScheduleWithContext (ar.Get (0)->GetId (), Seconds (0.1),
+                                  MakeEvent (&LinuxSocketFdFactory::Set, kern,
+                                             ".net.ipv6.conf.all.forwarding", "1"));
 
+  // For AR2 (the intermediate node)
+  AddAddress (ar.Get (1), Seconds (0.1), "sim0", "2001:1:2:3::3/64");
+  RunIp (ar.Get (1), Seconds (0.11), "link set lo up");
+  RunIp (ar.Get (1), Seconds (0.11), "link set sim0 up");
+  AddAddress (ar.Get (1), Seconds (0.12), "sim1", "2001:1:2:7::2/64");
+  RunIp (ar.Get (1), Seconds (0.13), "link set sim1 up");
+  RunIp (ar.Get (1), Seconds (0.15), "-6 route add 2001:1:2:5::1/64 via 2001:1:2:3::1 dev sim0");
+  //  RunIp (ar.Get (1), Seconds (0.15), "route show table all");
+  kern = ar.Get (1)->GetObject<LinuxSocketFdFactory>();
+  Simulator::ScheduleWithContext (ar.Get (1)->GetId (), Seconds (0.1),
+                                  MakeEvent (&LinuxSocketFdFactory::Set, kern,
+                                             ".net.ipv6.conf.all.forwarding", "1"));
 
-  // For MR or MAG
+  // For MR
   RunIp (mr.Get (0), Seconds (0.11), "link set lo up");
-  RunIp (mr.Get (0), Seconds (4.11), "link set sim0 up");
+  RunIp (mr.Get (0), Seconds (5.11), "link set sim0 up");
   RunIp (mr.Get (0), Seconds (3.0), "link set ip6tnl0 up");
-  //      RunIp (mr.Get (0), Seconds (3.1), "addr list");
   AddAddress (mr.Get (0), Seconds (0.12), "sim1", "2001:1:2:5::1/64");
   RunIp (mr.Get (0), Seconds (0.13), "link set sim1 up");
 
@@ -218,11 +317,11 @@ DceUmipTestCase::DoRun (void)
   RunIp (mnn.Get (0), Seconds (0.11), "link set sim0 up");
 
 
-
-
   if (m_debug)
     {
+      Packet::EnablePrinting ();
       csma.EnablePcapAll ("dce-umip-test-" + m_testname);
+      phy.EnablePcapAll ("dce-umip-test-" + m_testname);
     }
 
   //
@@ -231,6 +330,7 @@ DceUmipTestCase::DoRun (void)
   //
   QuaggaHelper quagga;
   Mip6dHelper mip6d;
+  ApplicationContainer apps;
 
   // HA
   if (m_testname == "NEMO")
@@ -260,14 +360,12 @@ DceUmipTestCase::DoRun (void)
   // AR
   quagga.EnableRadvd (ar.Get (0), "sim0", "2001:1:2:3::/64");
   quagga.EnableHomeAgentFlag (ar.Get (0), "sim0");
+  quagga.EnableHomeAgentFlag (ar.Get (1), "sim0");
   quagga.EnableRadvd (ar.Get (0), "sim1", "2001:1:2:4::/64");
   quagga.EnableRadvd (ar.Get (0), "sim2", "2001:1:2:6::/64");
+  quagga.EnableRadvd (ar.Get (1), "sim1", "2001:1:2:7::/64");
   quagga.EnableZebraDebug (ar);
   quagga.Install (ar);
-  Ptr<LinuxSocketFdFactory> kern = ar.Get (0)->GetObject<LinuxSocketFdFactory> ();
-  Simulator::ScheduleWithContext (ar.Get (0)->GetId (), Seconds (0.1),
-                                  MakeEvent (&LinuxSocketFdFactory::Set, kern,
-                                             ".net.ipv6.conf.all.forwarding", "1"));
 
   //
   // Step 4
@@ -304,22 +402,21 @@ DceUmipTestCase::DoRun (void)
   std::ostringstream oss;
   oss << i2.GetAddress (0, 1);
   dce.AddArgument (oss.str ());
-  ApplicationContainer apps;
   if (m_testname == "MIP6")
     {
       apps = dce.Install (mr.Get (0));
       // Configure Validity Check Parser
-      Config::Connect ("/NodeList/2/DeviceList/0/$ns3::CsmaNetDevice/MacRx",
-                       MakeCallback (&DceUmipTestCase::CsmaRxCallback, this));
+      Config::Connect ("/NodeList/3/DeviceList/0/$ns3::WifiNetDevice/Mac/MacRx",
+                       MakeCallback (&DceUmipTestCase::WifiRxCallback, this));
     }
   else if (m_testname == "NEMO")
     {
       apps = dce.Install (mnn.Get (0));
       // Configure Validity Check Parser
-      Config::Connect ("/NodeList/4/DeviceList/0/$ns3::CsmaNetDevice/MacRx",
-                       MakeCallback (&DceUmipTestCase::CsmaRxCallback, this));
+      Config::Connect ("/NodeList/5/DeviceList/0/$ns3::WifiNetDevice/Mac/MacRx",
+                       MakeCallback (&DceUmipTestCase::WifiRxCallback, this));
     }
-  apps.Start (Seconds (10.0));
+  apps.Start (Seconds (50.0));
 
 
   //
@@ -353,7 +450,8 @@ DceUmipTestCase::DoRun (void)
       ::system (("/bin/mv -f files-0 files-0-" + m_testname).c_str ());
       ::system (("/bin/mv -f files-1 files-1-" + m_testname).c_str ());
       ::system (("/bin/mv -f files-2 files-2-" + m_testname).c_str ());
-      ::system (("/bin/mv -f files-4 files-4-" + m_testname).c_str ());
+      ::system (("/bin/mv -f files-3 files-3-" + m_testname).c_str ());
+      ::system (("/bin/mv -f files-5 files-5-" + m_testname).c_str ());
     }
   else
     {
@@ -382,8 +480,8 @@ DceUmipTestSuite::DceUmipTestSuite ()
   } testPair;
 
   const testPair tests[] = {
-    { "MIP6", 30},
-    { "NEMO", 30},
+    { "MIP6", 300},
+    { "NEMO", 300},
   };
 
   ::system ("/bin/rm -rf files-*/usr/local/etc/*.pid");

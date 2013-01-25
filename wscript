@@ -41,9 +41,9 @@ def dce_kw(**kw):
     return d
 
 def build_dce_tests(module, bld):
-    module.add_runner_test(needed=['core', 'dce-quagga', 'internet', 'csma', 'dce-umip'],
+    module.add_runner_test(needed=['core', 'dce-quagga', 'internet', 'csma', 'dce-umip', 'mobility', 'wifi'],
                            source=['test/dce-umip-test.cc'])
-    module.add_runner_test(needed=['core', 'dce-quagga', 'internet', 'csma', 'dce-umip'],
+    module.add_runner_test(needed=['core', 'dce-quagga', 'internet', 'csma', 'dce-umip', 'mobility', 'wifi'],
                            source=['test/dce-umip-test.cc'], linkflags = ['-Wl,--dynamic-linker=' + os.path.abspath (bld.env.PREFIX + '/lib/ldso')], name='vdl')
 
 def build_dce_examples(module):
