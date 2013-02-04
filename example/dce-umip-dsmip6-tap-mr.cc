@@ -126,7 +126,7 @@ int main (int argc, char *argv[])
 
   DceManagerHelper processManager;
   processManager.SetNetworkStack ("ns3::LinuxSocketFdFactory",
-                                  "Library", StringValue ("libnet-next-2.6.so"));
+                                  "Library", StringValue ("liblinux.so"));
   processManager.Install (mr);
 
   // Prefix configuration

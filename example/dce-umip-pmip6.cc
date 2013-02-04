@@ -116,7 +116,7 @@ int main (int argc, char *argv[])
                                           EnumValue (0));
   processManager.SetLoader ("ns3::DlmLoaderFactory");
   processManager.SetNetworkStack("ns3::LinuxSocketFdFactory",
-				 "Library", StringValue ("libnet-next-2.6.so"));
+				 "Library", StringValue ("liblinux.so"));
   processManager.Install (lma);
   processManager.Install (mag);
 

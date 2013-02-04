@@ -147,7 +147,7 @@ int main (int argc, char *argv[])
   dceMng.SetTaskManagerAttribute ("FiberManagerType",
                                   EnumValue (0));
   dceMng.SetNetworkStack ("ns3::LinuxSocketFdFactory",
-                                  "Library", StringValue ("libnet-next-2.6.so"));
+                                  "Library", StringValue ("liblinux.so"));
   dceMng.Install (mr);
   dceMng.Install (ha);
   dceMng.Install (ar);
