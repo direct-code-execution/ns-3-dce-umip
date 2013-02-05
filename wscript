@@ -9,6 +9,10 @@ import sys
 
 def options(opt):
     opt.tool_options('compiler_cc') 
+    opt.add_option('--enable-opt',
+                   help=('Enable use of DCE and NS-3 optimized compilation'),
+                   dest='enable_opt', action='store_true',
+                   default=False)    
     ns3waf.options(opt)
 
 def configure(conf):
@@ -23,6 +27,9 @@ def configure(conf):
 
     conf.env.append_value('LINKFLAGS', '-pthread')
     conf.check (lib='dl', mandatory = True)
+    conf.env['ENABLE_PYTHON_BINDINGS'] = True
+    conf.env['EXAMPLE_DIRECTORIES'] = '.'
+    conf.env['NS3_ENABLED_MODULES'] = []
     ns3waf.print_feature_summary(conf)
 
 
@@ -75,6 +82,12 @@ def build_dce_kernel_examples(module):
 
 
 def build(bld):
+    bld.env['NS3_MODULES_WITH_TEST_LIBRARIES'] = []
+    bld.env['NS3_ENABLED_MODULE_TEST_LIBRARIES'] = []
+    bld.env['NS3_SCRIPT_DEPENDENCIES'] = []
+    bld.env['NS3_RUNNABLE_PROGRAMS'] = []
+    bld.env['NS3_RUNNABLE_SCRIPTS'] = []
+
     module_source = [
         'helper/mip6d-helper.cc',
         ]
@@ -95,3 +108,16 @@ def build(bld):
     bld.install_files('${PREFIX}/bin', 'build/bin/ns3test-dce-umip-vdl', chmod=0755 )
     build_dce_examples(module)
     build_dce_kernel_examples(module)
+
+    # Write the build status file.
+    build_status_file = os.path.join(bld.out_dir, 'build-status.py')
+    out = open(build_status_file, 'w')
+    out.write('#! /usr/bin/env python\n')
+    out.write('\n')
+    out.write('# Programs that are runnable.\n')
+    out.write('ns3_runnable_programs = ' + str(bld.env['NS3_RUNNABLE_PROGRAMS']) + '\n')
+    out.write('\n')
+    out.write('# Scripts that are runnable.\n')
+    out.write('ns3_runnable_scripts = ' + str(bld.env['NS3_RUNNABLE_SCRIPTS']) + '\n')
+    out.write('\n')
+    out.close()

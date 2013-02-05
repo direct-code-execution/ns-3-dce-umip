@@ -10,4 +10,5 @@
 ^.lock-
 pcap
 ^doc/build
-
+testpy-output
+\.pyc$
