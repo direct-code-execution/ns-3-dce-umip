@@ -113,15 +113,6 @@ You can build ns-3-dce-umip as following:
 You can see the above PASSed test if everything goes fine. Congrats!
 
 
-Setting Environment
-*********************
-
-Call the setenv.sh script to correctly setup the environment variables (i.e., PATH, LD_LIBRARY_PATH and PKG_CONFIG_PATH)
-
-::
-
-  $ source ns-3-dce/utils/setenv.sh
-
 Examples
 ********
 Basic
@@ -129,14 +120,14 @@ Basic
 ::
 
   $ cd ns-3-dce-umip
-  $ ./build/bin/dce-umip-nemo
+  $ ./waf --run dce-umip-nemo
 
 if everything goes fine, you would see the output as follows.
 
 
 ::
 
-  $ ./build/bin/dce-umip-nemo
+  $ ./waf --run dce-umip-nemo
   Sent 1032 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
   Sent 1032 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
   Sent 1032 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a

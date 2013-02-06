@@ -89,22 +89,14 @@ fi
 
 # build ns-3-dce-umip
 cd ns-3-dce-umip
-LD_LIBRARY_PATH=`pwd`/../build/lib DCE_PATH=`pwd`/../ns-3-dce/build/bin_dce \
-    PKG_CONFIG_PATH=`pwd`/../build/lib/pkgconfig \
-    ./waf configure --prefix=`pwd`/../build
-LD_LIBRARY_PATH=`pwd`/../build/lib DCE_PATH=`pwd`/../ns-3-dce/build/bin_dce \
-    PKG_CONFIG_PATH=`pwd`/../build/lib/pkgconfig \
+./waf configure --prefix=`pwd`/../build
 ./waf
-LD_LIBRARY_PATH=`pwd`/../build/lib DCE_PATH=`pwd`/../ns-3-dce/build/bin_dce \
-    PKG_CONFIG_PATH=`pwd`/../build/lib/pkgconfig \
 ./waf install
 
 if [ $TEST == "YES" ]
 then
     echo Launch NS3UMIPTEST-DCE
-    LD_LIBRARY_PATH=`pwd`/../build/lib DCE_PATH=`pwd`/../ns-3-dce/build/bin_dce:`pwd`/../build/bin \
-	PKG_CONFIG_PATH=`pwd`/../build/lib/pkgconfig \
-	./build/bin/ns3test-dce-umip --verbose
+    ./waf --run "ns3test-dce-umip --verbose"
 fi
 
 
