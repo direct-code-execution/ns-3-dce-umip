@@ -57,58 +57,36 @@ or
 
 Building ns-3, DCE, DCE-Quagga, and DCE-UMIP
 **********************************
-(Hope bake integration tool will help these instruction simple :-)
-
-
-First you need to download NS-3 DCE using mercurial:
+To install ns-3-dce-umip, you can use **bake** as an installation tool as follows.
 
 ::
 
-  $ mkdir test_build_ns3_dce
-  $ cd test_build_ns3_dce
-  $ hg clone http://code.nsnam.org/furbani/ns-3-dce
+  $ hg clone http://code.nsnam.org/bake bake
+  $ export BAKE_HOME=`pwd`/bake
+  $ export PATH=$PATH:$BAKE_HOME
+  $ export PYTHONPATH=$PYTHONPATH:$BAKE_HOME
 
-then build ns-3-dce:
+then build ns-3-dce with umip:
 
 ::
 
-  $ ns-3-dce/utils/clone_and_compile_ns3_dce.sh -k
-
-Note that "-k" requires the build of ns-3-linux, which supports Linux
-native stack direct code execution with quagga. This is highly
-recommended at this moment (2012/04/20) so that Quagga runs
-successfully.
+  $ mkdir dce
+  $ cd dce
+  $ bake.py configure -e dce-linux -e dce-umip
+  $ bake.py build
 
 For more information about ns-3-dce core, please refer the `DCE manual
 <http://www-sop.inria.fr/members/Frederic.Urbani/ns3dceccnx/getting-started.html#building-ns-3-and-dce>`_.
 
-After DCE is installed successfully, then install ns-3-dce-quagga.
+Then you can try an example of ns-3-dce-umip as follows:
 
 ::
 
-  $ cd test_build_ns3_dce
-  $ hg clone http://code.nsnam.org/thehajime/ns-3-dce-quagga
-  $ cd ns-3-dce-quagga
-  $ ./utils/dce_build.sh -k
-
-It's ready to install ns-3-dce-umip after all.
-
-::
-
-  $ cd test_build_ns3_dce
-  $ hg clone http://code.nsnam.org/thehajime/ns-3-dce-umip
-
-
-You can build ns-3-dce-umip as following:
-
-::
-
-  $ cd ns-3-dce-umip
-  $ ./utils/dce_build.sh
+  $ cd source/dce
+  $ ./test.py -s dce-umip
   ...
-  Launch NS3UMIPTEST-DCE
-  PASS dce-quagga 16.310ms
-    PASS Check that process "NEMO" completes correctly. 2.010ms
+  PASS: TestSuite dce-umip 11.474 s
+  1 of 1 tests passed (1 passed, 0 skipped, 0 failed, 0 crashed, 0 valgrind errors)
     
 You can see the above PASSed test if everything goes fine. Congrats!
 
@@ -119,7 +97,7 @@ Basic
 #####
 ::
 
-  $ cd ns-3-dce-umip
+  $ cd source/dce
   $ ./waf --run dce-umip-nemo
 
 if everything goes fine, you would see the output as follows.

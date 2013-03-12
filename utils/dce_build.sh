@@ -4,6 +4,10 @@ TEST=NO
 
 cd `dirname $BASH_SOURCE`/../..
 
+echo "This script is obsolted."
+echo "Please use bake to install dce and ns-3-dce-quagga. exit"
+exit
+
 # build umip
 git clone git://git.umip.org/umip.git
 cd umip
