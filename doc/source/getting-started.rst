@@ -70,11 +70,11 @@ then build ns-3-dce with umip:
 
 ::
 
-  $ mkdir dce
-  $ cd dce
-  $ ../bake.py configure -e dce-linux -e dce-umip
-  $ ../bake.py download
-  $ ../bake.py build
+  mkdir dce
+  cd dce
+  ../bake.py configure -e dce-linux -e dce-umip
+  ../bake.py download
+  ../bake.py build
 
 For more information about ns-3-dce core, please refer the `DCE manual
 <http://www-sop.inria.fr/members/Frederic.Urbani/ns3dceccnx/getting-started.html#building-ns-3-and-dce>`_.
