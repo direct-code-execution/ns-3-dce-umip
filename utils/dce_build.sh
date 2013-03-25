@@ -5,7 +5,7 @@ TEST=NO
 cd `dirname $BASH_SOURCE`/../..
 
 echo "This script is obsolted."
-echo "Please use bake to install dce and ns-3-dce-quagga. exit"
+echo "Please use bake to install dce and ns-3-dce-umip. exit"
 exit
 
 # build umip
