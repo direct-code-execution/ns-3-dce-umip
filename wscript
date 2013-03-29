@@ -13,6 +13,9 @@ def options(opt):
     ns3waf.options(opt)
 
 def configure(conf):
+    if 'KERNEL_STACK' not in conf.env:
+        return
+
     ns3waf.check_modules(conf, ['core', 'network', 'internet'], mandatory = True)
     ns3waf.check_modules(conf, ['point-to-point', 'tap-bridge', 'netanim'], mandatory = False)
     ns3waf.check_modules(conf, ['wifi', 'point-to-point', 'csma', 'mobility'], mandatory = False)
@@ -56,6 +59,9 @@ def build_dce_kernel_examples(module):
                        source=['example/dce-umip-pmip6.cc'])
 
 def build(bld):
+    if 'KERNEL_STACK' not in bld.env:
+        return
+
     module_source = [
         'helper/mip6d-helper.cc',
         ]
