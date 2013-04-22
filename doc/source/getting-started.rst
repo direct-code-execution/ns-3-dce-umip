@@ -83,7 +83,7 @@ Then you can try an example of ns-3-dce-umip as follows:
 
 ::
 
-  $ cd source/dce
+  $ cd source/ns-3-dce
   $ ./test.py -s dce-umip
   ...
   PASS: TestSuite dce-umip 11.474 s
@@ -98,7 +98,7 @@ Basic
 #####
 ::
 
-  $ cd source/dce
+  $ cd source/ns-3-dce
   $ ./waf --run dce-umip-nemo
 
 if everything goes fine, you would see the output as follows.
