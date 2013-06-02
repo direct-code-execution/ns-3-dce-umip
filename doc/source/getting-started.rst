@@ -56,7 +56,7 @@ or
 
 
 Building ns-3, DCE, DCE-Quagga, and DCE-UMIP
-**********************************
+********************************************
 To install ns-3-dce-umip, you can use **bake** as an installation tool as follows.
 
 ::
