@@ -68,7 +68,7 @@
 
 static std::string g_testError;
 
-extern "C" void dce_manager_test_store_test_error (const char *s)
+extern "C" void dce_umip_test_store_test_error (const char *s)
 {
   g_testError = s;
 }
