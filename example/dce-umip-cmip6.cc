@@ -227,11 +227,6 @@ int main (int argc, char *argv[])
       ipv6.NewNetwork (Ipv6Address ("2001:1:2:6::"), 64);
       Ipv6InterfaceContainer i2 = ipv6.Assign (cn_devices.Get (1));
 
-      Ptr<Ipv6StaticRouting> routing = 0;
-      Ipv6StaticRoutingHelper routingHelper;
-      routing = routingHelper.GetStaticRouting (cn.Get (0)->GetObject<Ipv6> ());
-      routing->SetDefaultRoute (Ipv6Address ("2001:1:2:6::2"), 1, Ipv6Address ("::"), 0);
-
       uint32_t packetSize = 1024;
       uint32_t maxPacketCount = 50000000;
       Time interPacketInterval = Seconds (1.);
