@@ -262,6 +262,7 @@ DceUmipTestCase::DoRun (void)
   dceMng.Install (mr);
   dceMng.Install (ar);
   dceMng.Install (mnn);
+  dceMng.Install (cn);
 
   // Prefix configuration
   std::string ha_sim0 ("2001:1:2:3::1/64");
@@ -316,6 +317,11 @@ DceUmipTestCase::DoRun (void)
   RunIp (mnn.Get (0), Seconds (0.11), "link set lo up");
   RunIp (mnn.Get (0), Seconds (0.11), "link set sim0 up");
 
+  // For CN
+  RunIp (cn.Get (0), Seconds (0.11), "link set lo up");
+  RunIp (cn.Get (0), Seconds (1.11), "link set sim0 up");
+  RunIp (cn.Get (0), Seconds (1.11), "add default via 2001:1:2:6::2");
+  AddAddress (cn.Get (0), Seconds (0.12), "sim0", "2001:1:2:6::7/64");
 
   if (m_debug)
     {
@@ -375,14 +381,6 @@ DceUmipTestCase::DoRun (void)
   // Ping6
   /* Install IPv4/IPv6 stack */
   DceApplicationHelper dce;
-  InternetStackHelper internetv6;
-  internetv6.SetIpv4StackInstall (false);
-  internetv6.Install (cn);
-
-  Ipv6AddressHelper ipv6;
-
-  ipv6.NewNetwork (Ipv6Address ("2001:1:2:6::"), 64);
-  Ipv6InterfaceContainer i2 = ipv6.Assign (cn_devices.Get (1));
 
   uint32_t packetSize = 1024;
   uint32_t maxPacketCount = 50000000;
@@ -394,9 +392,7 @@ DceUmipTestCase::DoRun (void)
   dce.ResetEnvironment ();
   // dce.AddArgument ("-i");
   // dce.AddArgument (interPacketInterval.GetSeconds ());
-  std::ostringstream oss;
-  oss << i2.GetAddress (0, 1);
-  dce.AddArgument (oss.str ());
+  dce.AddArgument ("2001:1:2:6::7");
   if (m_testname == "MIP6")
     {
       apps = dce.Install (mr.Get (0));

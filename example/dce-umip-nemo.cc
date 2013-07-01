@@ -34,7 +34,6 @@
 
 #include "ns3/network-module.h"
 #include "ns3/core-module.h"
-#include "ns3/internet-module.h"
 #include "ns3/dce-module.h"
 #include "ns3/mip6d-helper.h"
 #include "ns3/csma-helper.h"
@@ -151,6 +150,8 @@ int main (int argc, char *argv[])
   dceMng.Install (mr);
   dceMng.Install (ha);
   dceMng.Install (ar);
+  dceMng.Install (mnn);
+  dceMng.Install (cn);
 
   // Prefix configuration
   std::string ha_sim0 ("2001:1:2:3::1/64");
@@ -215,6 +216,16 @@ int main (int argc, char *argv[])
       RunIp (mr.Get (i), Seconds (0.13), "link set sim1 up");
     }
 
+  // For MNN
+  RunIp (mnn.Get (0), Seconds (0.11), "link set lo up");
+  RunIp (mnn.Get (0), Seconds (0.11), "link set sim0 up");
+
+  // For CN
+  RunIp (cn.Get (0), Seconds (0.11), "link set lo up");
+  RunIp (cn.Get (0), Seconds (1.11), "link set sim0 up");
+  RunIp (cn.Get (0), Seconds (1.11), "add default via 2001:1:2:6::2");
+  AddAddress (cn.Get (0), Seconds (0.12), "sim0", "2001:1:2:6::7/64");
+
   RunIp (ha.Get (0), Seconds (4.0), "addr list");
   RunIp (ar.Get (0), Seconds (4.1), "addr list");
   RunIp (mr.Get (0), Seconds (4.2), "addr list");
@@ -261,33 +272,22 @@ int main (int argc, char *argv[])
   // MNN
   if (usePing)
     {
-      LogComponentEnable ("Ping6Application", LOG_LEVEL_INFO);
+      DceApplicationHelper dce;
       // Ping6
-      /* Install IPv4/IPv6 stack */
-      InternetStackHelper internetv6;
-      internetv6.SetIpv4StackInstall (false);
-      internetv6.Install (mnn);
-      internetv6.Install (cn);
-
-      Ipv6AddressHelper ipv6;
-      Ipv6InterfaceContainer i1 = ipv6.AssignWithoutAddress (mnp_devices.Get (1));
-
-      ipv6.NewNetwork (Ipv6Address ("2001:1:2:6::"), 64);
-      Ipv6InterfaceContainer i2 = ipv6.Assign (cn_devices.Get (1));
-
       uint32_t packetSize = 1024;
       uint32_t maxPacketCount = 50000000;
       Time interPacketInterval = Seconds (1.);
-      Ping6Helper ping6;
 
-      ping6.SetLocal (Ipv6Address::GetAny ());
-      ping6.SetRemote (i2.GetAddress (0, 1));
+      dce.SetBinary ("ping6");
+      dce.SetStackSize (1 << 16);
+      dce.ResetArguments ();
+      dce.ResetEnvironment ();
+      // dce.AddArgument ("-i");
+      // dce.AddArgument (interPacketInterval.GetSeconds ());
+      dce.AddArgument ("2001:1:2:6::7");
 
-      ping6.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
-      ping6.SetAttribute ("Interval", TimeValue (interPacketInterval));
-      ping6.SetAttribute ("PacketSize", UintegerValue (packetSize));
-      ApplicationContainer apps = ping6.Install (mnn.Get (0));
-      apps.Start (Seconds (2.0));
+      ApplicationContainer apps = dce.Install (mnn.Get (0));
+      apps.Start (Seconds (20.0));
     }
 
   phy.EnablePcapAll ("dce-umip-nemo");

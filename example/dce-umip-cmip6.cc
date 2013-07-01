@@ -30,7 +30,6 @@
 
 #include "ns3/network-module.h"
 #include "ns3/core-module.h"
-#include "ns3/internet-module.h"
 #include "ns3/dce-module.h"
 #include "ns3/mip6d-helper.h"
 #include "ns3/csma-helper.h"
@@ -132,6 +131,7 @@ int main (int argc, char *argv[])
   dceMng.Install (mn);
   dceMng.Install (ha);
   dceMng.Install (ar);
+  dceMng.Install (cn);
 
   // Prefix configuration
   std::string ha_sim0 ("2001:1:2:3::1/64");
@@ -180,6 +180,12 @@ int main (int argc, char *argv[])
   RunIp (mn.Get (0), Seconds (3.0), "link set ip6tnl0 up");
   //      RunIp (mn.Get (0), Seconds (3.1), "addr list");
 
+  // For CN
+  RunIp (cn.Get (0), Seconds (0.11), "link set lo up");
+  RunIp (cn.Get (0), Seconds (1.11), "link set sim0 up");
+  RunIp (cn.Get (0), Seconds (1.11), "add default via 2001:1:2:6::2");
+  AddAddress (cn.Get (0), Seconds (0.12), "sim0", "2001:1:2:6::7/64");
+
   RunIp (ha.Get (0), Seconds (4.0), "addr list");
   RunIp (ar.Get (0), Seconds (4.1), "addr list");
   RunIp (mn.Get (0), Seconds (40.2), "addr list");
@@ -216,21 +222,10 @@ int main (int argc, char *argv[])
   // MNN
   if (usePing)
     {
-      LogComponentEnable ("Ping6Application", LOG_LEVEL_INFO);
       // Ping6
-      /* Install IPv4/IPv6 stack */
-      InternetStackHelper internetv6;
-      internetv6.SetIpv4StackInstall (false);
-      internetv6.Install (cn);
-
-      Ipv6AddressHelper ipv6;
-      ipv6.NewNetwork (Ipv6Address ("2001:1:2:6::"), 64);
-      Ipv6InterfaceContainer i2 = ipv6.Assign (cn_devices.Get (1));
-
       uint32_t packetSize = 1024;
       uint32_t maxPacketCount = 50000000;
       Time interPacketInterval = Seconds (1.);
-      Ping6Helper ping6;
 
       dce.SetBinary ("ping6");
       dce.SetStackSize (1 << 16);
@@ -238,9 +233,7 @@ int main (int argc, char *argv[])
       dce.ResetEnvironment ();
       // dce.AddArgument ("-i");
       // dce.AddArgument (interPacketInterval.GetSeconds ());
-      std::ostringstream oss;
-      oss << i2.GetAddress (0, 1);
-      dce.AddArgument (oss.str ());
+      dce.AddArgument ("2001:1:2:6::7");
       ApplicationContainer apps = dce.Install (mn.Get (0));
       apps.Start (Seconds (50.0));
     }
