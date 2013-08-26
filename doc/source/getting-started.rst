@@ -72,11 +72,11 @@ then build ns-3-dce with umip:
 
   mkdir dce
   cd dce
-  ../bake.py configure -e dce-linux-1.0 -e dce-umip-1.0
-  ../bake.py download
-  ../bake.py build
+  bake.py configure -e dce-linux-|version| -e dce-umip-|version|
+  bake.py download
+  bake.py build
 
-note that **dce-umip-1.0** is the DCE umip module version 1.0. If you would like to use the development version of the module, you can specify **dce-umip-dev** as a module name for bake.
+note that dce-umip-|version| is the DCE umip module version |version|. If you would like to use the development version of the module, you can specify **dce-umip-dev** as a module name for bake.
 
 For more information about ns-3-dce core, please refer the `DCE manual
 <../../html/getting-started.html>`_.
