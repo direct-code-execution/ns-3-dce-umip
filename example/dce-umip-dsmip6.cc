@@ -293,7 +293,7 @@ int main (int argc, char *argv[])
       Ipv6AddressHelper ipv6;
       Ipv6InterfaceContainer i1 = ipv6.AssignWithoutAddress (mnp_devices.Get (1));
 
-      ipv6.NewNetwork (Ipv6Address ("2001:1:2:6::"), 64);
+      ipv6.SetBase (Ipv6Address ("2001:1:2:6::"), 64);
       Ipv6InterfaceContainer i2 = ipv6.Assign (cn_devices.Get (1));
 
       Ptr<Ipv6StaticRouting> routing = 0;

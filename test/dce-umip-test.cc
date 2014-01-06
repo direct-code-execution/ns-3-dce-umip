@@ -479,7 +479,8 @@ DceUmipTestSuite::DceUmipTestSuite ()
   for (unsigned int i = 0; i < sizeof(tests) / sizeof(testPair); i++)
     {
       AddTestCase (new DceUmipTestCase (std::string (tests[i].name),
-                                        Seconds (tests[i].duration)));
+                                        Seconds (tests[i].duration)),
+                   TestCase::QUICK);
     }
 }
 
