@@ -19,6 +19,7 @@
  */
 
 #include "ns3/object-factory.h"
+#include "ns3/simulator.h"
 #include "mip6d-helper.h"
 #include "ns3/dce-application-helper.h"
 #include "ns3/names.h"
