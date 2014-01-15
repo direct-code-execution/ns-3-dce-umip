@@ -46,6 +46,7 @@
 
 
 using namespace ns3;
+NS_LOG_COMPONENT_DEFINE ("DceUmipNemo");
 
 static void RunIp (Ptr<Node> node, Time at, std::string str)
 {
@@ -64,6 +65,12 @@ static void AddAddress (Ptr<Node> node, Time at, const char *name, const char *a
   std::ostringstream oss;
   oss << "-f inet6 addr add " << address << " dev " << name;
   RunIp (node, at, oss.str ());
+}
+
+void
+PrintFlags (std::string key, std::string value)
+{
+  NS_LOG_INFO (key << "=" << value);
 }
 
 bool usePing = true;
@@ -100,13 +107,14 @@ int main (int argc, char *argv[])
   x->SetAttribute ("Min", DoubleValue (0.0));
   x->SetAttribute ("Max", DoubleValue (200.0));
   r_position->SetX (100);
-  r_position->SetY (50);
+  r_position->SetY (150);
   r_position->SetRho (x);
   mobility.SetPositionAllocator (r_position);
   mobility.SetMobilityModel ("ns3::RandomDirection2dMobilityModel",
                              "Bounds", RectangleValue (Rectangle (0, 200, 30, 60)),
                              "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=10.0]"),
                              "Pause", StringValue ("ns3::ConstantRandomVariable[Constant=0.2]"));
+  //  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (mr);
 
 
@@ -175,11 +183,11 @@ int main (int argc, char *argv[])
 
   // For AR1 (the intermediate node)
   AddAddress (ar.Get (0), Seconds (0.1), "sim0", "2001:1:2:3::2/64");
+  AddAddress (ar.Get (0), Seconds (0.1), "sim1", "2001:1:2:4::2/64");
+  AddAddress (ar.Get (0), Seconds (0.1), "sim2", "2001:1:2:6::2/64");
   RunIp (ar.Get (0), Seconds (0.11), "link set lo up");
   RunIp (ar.Get (0), Seconds (0.11), "link set sim0 up");
-  AddAddress (ar.Get (0), Seconds (0.12), "sim1", "2001:1:2:4::2/64");
   RunIp (ar.Get (0), Seconds (0.13), "link set sim1 up");
-  AddAddress (ar.Get (0), Seconds (0.13), "sim2", "2001:1:2:6::2/64");
   RunIp (ar.Get (0), Seconds (0.14), "link set sim2 up");
   RunIp (ar.Get (0), Seconds (0.15), "-6 route add 2001:1:2::/48 via 2001:1:2:3::1 dev sim0");
   RunIp (ar.Get (0), Seconds (0.15), "route show table all");
@@ -190,9 +198,9 @@ int main (int argc, char *argv[])
 
   // For AR2 (the intermediate node)
   AddAddress (ar.Get (1), Seconds (0.1), "sim0", "2001:1:2:3::3/64");
+  AddAddress (ar.Get (1), Seconds (0.1), "sim1", "2001:1:2:7::2/64");
   RunIp (ar.Get (1), Seconds (0.11), "link set lo up");
   RunIp (ar.Get (1), Seconds (0.11), "link set sim0 up");
-  AddAddress (ar.Get (1), Seconds (0.12), "sim1", "2001:1:2:7::2/64");
   RunIp (ar.Get (1), Seconds (0.13), "link set sim1 up");
   std::ostringstream oss;
   oss << "-6 route add " << mnp1 << "/64 via 2001:1:2:3::1 dev sim0";
@@ -202,6 +210,9 @@ int main (int argc, char *argv[])
   Simulator::ScheduleWithContext (ar.Get (1)->GetId (), Seconds (0.1),
                                   MakeEvent (&LinuxSocketFdFactory::Set, kern,
                                              ".net.ipv6.conf.all.forwarding", "1"));
+
+  LinuxStackHelper::SysctlGet (ar.Get (1), Seconds (1.0),
+                               ".net.ipv6.conf.all.forwarding", &PrintFlags);
 
   // For MR
   for (uint32_t i = 0; i < mr.GetN (); i++)

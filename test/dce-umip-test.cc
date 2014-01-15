@@ -280,11 +280,11 @@ DceUmipTestCase::DoRun (void)
 
   // For AR1 (the intermediate node)
   AddAddress (ar.Get (0), Seconds (0.1), "sim0", "2001:1:2:3::2/64");
+  AddAddress (ar.Get (0), Seconds (0.1), "sim1", "2001:1:2:4::2/64");
+  AddAddress (ar.Get (0), Seconds (0.1), "sim2", "2001:1:2:6::2/64");
   RunIp (ar.Get (0), Seconds (0.11), "link set lo up");
   RunIp (ar.Get (0), Seconds (0.11), "link set sim0 up");
-  AddAddress (ar.Get (0), Seconds (0.12), "sim1", "2001:1:2:4::2/64");
   RunIp (ar.Get (0), Seconds (0.13), "link set sim1 up");
-  AddAddress (ar.Get (0), Seconds (0.13), "sim2", "2001:1:2:6::2/64");
   RunIp (ar.Get (0), Seconds (0.14), "link set sim2 up");
   RunIp (ar.Get (0), Seconds (0.15), "-6 route add 2001:1:2::/48 via 2001:1:2:3::1 dev sim0");
   RunIp (ar.Get (0), Seconds (0.15), "route show table all");
@@ -295,9 +295,9 @@ DceUmipTestCase::DoRun (void)
 
   // For AR2 (the intermediate node)
   AddAddress (ar.Get (1), Seconds (0.1), "sim0", "2001:1:2:3::3/64");
+  AddAddress (ar.Get (1), Seconds (0.1), "sim1", "2001:1:2:7::2/64");
   RunIp (ar.Get (1), Seconds (0.11), "link set lo up");
   RunIp (ar.Get (1), Seconds (0.11), "link set sim0 up");
-  AddAddress (ar.Get (1), Seconds (0.12), "sim1", "2001:1:2:7::2/64");
   RunIp (ar.Get (1), Seconds (0.13), "link set sim1 up");
   RunIp (ar.Get (1), Seconds (0.15), "-6 route add 2001:1:2:5::1/64 via 2001:1:2:3::1 dev sim0");
   //  RunIp (ar.Get (1), Seconds (0.15), "route show table all");
