@@ -316,6 +316,7 @@ DceUmipTestCase::DoRun (void)
   // For MNN
   RunIp (mnn.Get (0), Seconds (0.11), "link set lo up");
   RunIp (mnn.Get (0), Seconds (0.11), "link set sim0 up");
+  RunIp (mnn.Get (0), Seconds (10.13), "addr list");
 
   // For CN
   RunIp (cn.Get (0), Seconds (0.11), "link set lo up");
@@ -476,8 +477,14 @@ DceUmipTestSuite::DceUmipTestSuite ()
   };
 
   ::system ("/bin/rm -rf files-*/usr/local/etc/*.pid");
+  // for the moment: not supported quagga for freebsd
+  std::string filePath = SearchExecFile ("DCE_PATH", "liblinux.so", 0);
   for (unsigned int i = 0; i < sizeof(tests) / sizeof(testPair); i++)
     {
+      if (filePath.length () <= 0)
+        {
+          continue;
+        }
       AddTestCase (new DceUmipTestCase (std::string (tests[i].name),
                                         Seconds (tests[i].duration)),
                    TestCase::QUICK);
