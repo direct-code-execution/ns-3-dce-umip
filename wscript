@@ -50,13 +50,13 @@ def build_dce_kernel_examples(module):
                        target='bin/dce-umip-nemo',
                        source=['example/dce-umip-nemo.cc'])
 
-    module.add_example(needed = ['core', 'internet', 'csma', 'mobility', 'wifi', 'dce-umip'],
-                       target='bin/dce-umip-dsmip6',
-                       source=['example/dce-umip-dsmip6.cc'])
-
-    module.add_example(needed = ['core', 'internet', 'csma', 'mobility', 'wifi', 'dce-umip'],
-                       target='bin/dce-umip-pmip6',
-                       source=['example/dce-umip-pmip6.cc'])
+#    module.add_example(needed = ['core', 'internet', 'csma', 'mobility', 'wifi', 'dce-umip', 'applications'],
+#                       target='bin/dce-umip-dsmip6',
+#                       source=['example/dce-umip-dsmip6.cc'])
+#
+#    module.add_example(needed = ['core', 'internet', 'csma', 'mobility', 'wifi', 'dce-umip', 'applications'],
+#                       target='bin/dce-umip-pmip6',
+#                       source=['example/dce-umip-pmip6.cc'])
 
 def build(bld):
     if 'KERNEL_STACK' not in bld.env:
