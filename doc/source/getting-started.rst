@@ -79,7 +79,7 @@ then build ns-3-dce with umip:
 note that dce-umip-|version| is the DCE umip module version |version|. If you would like to use the development version of the module, you can specify **dce-umip-dev** as a module name for bake.
 
 For more information about ns-3-dce core, please refer the `DCE manual
-<../../html/getting-started.html>`_.
+<../../manual/html/getting-started.html>`_.
 
 Then you can try an example of ns-3-dce-umip as follows:
 
