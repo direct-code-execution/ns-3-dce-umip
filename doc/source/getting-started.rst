@@ -103,30 +103,23 @@ Basic
   $ cd source/ns-3-dce
   $ ./waf --run dce-umip-nemo
 
-if everything goes fine, you would see the output as follows.
-
+if everything goes fine, you would see the encapsulated ICMP echo
+request and reply packets from the generated pcap file (dce-umip-nemo-***.pcap).
 
 ::
 
-  $ ./waf --run dce-umip-nemo
-  Sent 1032 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
-  Sent 1032 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
-  Sent 1032 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
-  Sent 1032 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
-  Sent 1032 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
-  Sent 1080 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
-  Sent 1080 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
-  Received Echo Reply size  = 1024 bytes from 2001:0001:0002:0006:0200:00ff:fe00:000a id =  48879 seq = 6
-  Sent 1080 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
-  Received Echo Reply size  = 1024 bytes from 2001:0001:0002:0006:0200:00ff:fe00:000a id =  48879 seq = 7
-  Sent 1080 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
-  Received Echo Reply size  = 1024 bytes from 2001:0001:0002:0006:0200:00ff:fe00:000a id =  48879 seq = 8
-  Sent 1080 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
+   $ tcpdump -r dce-umip-nemo-3-0.pcap -n proto ipv6
+   reading from file dce-umip-nemo-3-0.pcap, link-type IEEE802_11 (802.11)
+   09:00:20.000212 IP6 2001:1:2:7:200:ff:fe00:5 > 2001:1:2:3::1: IP6 2001:1:2:5:200:ff:fe00:8 > 2001:1:2:6::7: ICMP6, echo request, seq 1, length 64
+   09:00:20.000834 IP6 2001:1:2:3::1 > 2001:1:2:7:200:ff:fe00:5: IP6 2001:1:2:6::7 > 2001:1:2:5:200:ff:fe00:8: ICMP6, echo reply, seq 1, length 64
+   09:00:21.000722 IP6 2001:1:2:7:200:ff:fe00:5 > 2001:1:2:3::1: IP6 2001:1:2:5:200:ff:fe00:8 > 2001:1:2:6::7: ICMP6, echo request, seq 2, length 64
+   09:00:21.001345 IP6 2001:1:2:3::1 > 2001:1:2:7:200:ff:fe00:5: IP6 2001:1:2:6::7 > 2001:1:2:5:200:ff:fe00:8: ICMP6, echo reply, seq 2, length 64
+   09:00:25.000769 IP6 2001:1:2:7:200:ff:fe00:5 > 2001:1:2:3::1: IP6 2001:1:2:5:200:ff:fe00:8 > 2001:1:2:6::7: ICMP6, echo request, seq 6, length 64
+   09:00:25.001392 IP6 2001:1:2:3::1 > 2001:1:2:7:200:ff:fe00:5: IP6 2001:1:2:6::7 > 2001:1:2:5:200:ff:fe00:8: ICMP6, echo reply, seq 6, length 64
+   09:00:26.000816 IP6 2001:1:2:7:200:ff:fe00:5 > 2001:1:2:3::1: IP6 2001:1:2:5:200:ff:fe00:8 > 2001:1:2:6::7: ICMP6, echo request, seq 7, length 64
+   09:00:26.001438 IP6 2001:1:2:3::1 > 2001:1:2:7:200:ff:fe00:5: IP6 2001:1:2:6::7 > 2001:1:2:5:200:ff:fe00:8: ICMP6, echo reply, seq 7, length 64
   
   (snip)
-  
-  Sent 1080 bytes to 2001:0001:0002:0006:0200:00ff:fe00:000a
-  Received Echo Reply size  = 1024 bytes from 2001:0001:0002:0006:0200:00ff:fe00:000a id =  48879 seq = 297
   $
 
 
