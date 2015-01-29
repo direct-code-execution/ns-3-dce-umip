@@ -82,7 +82,7 @@ public:
   void SetAttribute (std::string name, const AttributeValue &value);
 
   // For HA
-  void EnableHA (NodeContainer nodes);
+  void EnableHA (NodeContainer nodes, const char *ifname = "sim0");
   void AddHaServedPrefix (Ptr<Node> node,
                           Ipv6Address prefix, Ipv6Prefix plen);
 
@@ -105,6 +105,7 @@ public:
 
   // Common
   void EnableDebug (NodeContainer nodes);
+  void SetInterfaceInitialInitDelay (NodeContainer nodes, double delay);
   void UseManualConfig (NodeContainer nodes);
   void SetBinary (NodeContainer nodes, std::string binary);
 

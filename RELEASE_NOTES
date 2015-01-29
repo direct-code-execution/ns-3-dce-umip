@@ -1,0 +1,26 @@
+
+		ns-3-dce-umip RELEASE NOTES
+
+This file contains umip (Linux Mobile IPv6 daemon) support for Direct Code Execution release notes (most recent releases first).  
+
+Please refer the page http://www.nsnam.org/projects/direct-code-execution/ for detailed instructions
+
+Release dce-umip-dev
+====================
+This release is not yet available.
+
+Availability
+------------
+The same as DCE release.
+ 
+Tested platforms
+-------------------
+The same as DCE release.
+
+New user-visible features
+-------------------------
+- make Mip6dHelper configurable of interface for home network at homeagent
+
+Bugs fixed
+----------
+

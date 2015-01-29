@@ -41,6 +41,7 @@ public:
       m_mrenable (false),
       m_magenable (false),
       m_debug (false),
+      m_ifinit_delay (2.0),
       m_usemanualconf (false),
       m_ha_served_pfx (""),
       m_dsmip6enable (false),
@@ -77,9 +78,11 @@ public:
   } pmipMNprofile_t;
 
   bool m_haenable;
+  std::string m_ha_homenet_if;
   bool m_mrenable;
   bool m_magenable;
   bool m_debug;
+  double m_ifinit_delay;
   bool m_usemanualconf;
   bool m_dsmip6enable;
   std::string m_binary;
@@ -120,7 +123,7 @@ Mip6dHelper::SetAttribute (std::string name, const AttributeValue &value)
 
 // HomeAgent
 void
-Mip6dHelper::EnableHA (NodeContainer nodes)
+Mip6dHelper::EnableHA (NodeContainer nodes, const char *ifname)
 {
   for (uint32_t i = 0; i < nodes.GetN (); i++)
     {
@@ -131,6 +134,7 @@ Mip6dHelper::EnableHA (NodeContainer nodes)
           nodes.Get (i)->AggregateObject (mip6d_conf);
         }
       mip6d_conf->m_haenable = true;
+      mip6d_conf->m_ha_homenet_if = ifname;
 
       Ptr<LinuxSocketFdFactory> kern = nodes.Get (i)->GetObject<LinuxSocketFdFactory>();
       Simulator::ScheduleWithContext (nodes.Get (i)->GetId (), Seconds (0.1),
@@ -360,6 +364,22 @@ Mip6dHelper::EnableDebug (NodeContainer nodes)
 }
 
 void
+Mip6dHelper::SetInterfaceInitialInitDelay (NodeContainer nodes, double delay)
+{
+  for (uint32_t i = 0; i < nodes.GetN (); i++)
+    {
+      Ptr<Mip6dConfig> mip6d_conf = nodes.Get (i)->GetObject<Mip6dConfig> ();
+      if (!mip6d_conf)
+        {
+          mip6d_conf = CreateObject<Mip6dConfig> ();
+          nodes.Get (i)->AggregateObject (mip6d_conf);
+        }
+      mip6d_conf->m_ifinit_delay = delay;
+    }
+  return;
+}
+
+void
 Mip6dHelper::UseManualConfig (NodeContainer nodes)
 {
   for (uint32_t i = 0; i < nodes.GetN (); i++)
@@ -416,7 +436,7 @@ Mip6dHelper::GenerateConfig (Ptr<Node> node)
   if (mip6d_conf->m_haenable)
     {
       conf << "NodeConfig HA;" << std::endl
-           << "Interface \"sim0\";" << std::endl
+           << "Interface \"" << mip6d_conf->m_ha_homenet_if << "\";" << std::endl
            << "HaAcceptMobRtr enabled;" << std::endl
            << "#BindingAclPolicy 2001:1:2:3::1000 (2001:1:2:5::/64) allow;" << std::endl
            << "DefaultBindingAclPolicy allow;" << std::endl;
@@ -534,6 +554,12 @@ Mip6dHelper::GenerateConfig (Ptr<Node> node)
   if (mip6d_conf->m_debug)
     {
       conf << "DebugLevel 10;" << std::endl;
+    }
+
+  if (mip6d_conf->m_ifinit_delay)
+    {
+      conf << "InterfaceInitialInitDelay " 
+           << mip6d_conf->m_ifinit_delay << ";" << std::endl;
     }
 
   conf << *mip6d_conf;
