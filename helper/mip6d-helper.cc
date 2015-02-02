@@ -558,7 +558,8 @@ Mip6dHelper::GenerateConfig (Ptr<Node> node)
 
   if (mip6d_conf->m_ifinit_delay)
     {
-      conf << "InterfaceInitialInitDelay " 
+      conf.precision(1);
+      conf << "InterfaceInitialInitDelay " << std::fixed
            << mip6d_conf->m_ifinit_delay << ";" << std::endl;
     }
 
