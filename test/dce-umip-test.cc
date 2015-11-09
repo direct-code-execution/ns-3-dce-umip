@@ -119,6 +119,9 @@ DceUmipTestCase::WifiRxCallback (std::string context, Ptr<const Packet> original
     }
   Ptr<Packet> packet = originalPacket->Copy ();
 
+  LlcSnapHeader llc;
+  packet->RemoveHeader (llc);
+
   Ipv4Header v4hdr;
   Icmpv4Header icmphdr;
   Ipv6Header v6hdr;
