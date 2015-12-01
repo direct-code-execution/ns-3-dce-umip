@@ -164,8 +164,7 @@ DceUmipTestCase::WifiRxCallback (std::string context, Ptr<const Packet> original
 }
 
 DceUmipTestCase::DceUmipTestCase (std::string testname, Time maxDuration)
-  : TestCase ("Check that process \"" + testname
-              + "\" completes correctly."),
+  : TestCase (testname),
     m_testname (testname),
     m_maxDuration (maxDuration),
     m_pingStatus (false),
