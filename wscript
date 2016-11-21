@@ -22,7 +22,6 @@ def configure(conf):
     ns3waf.check_modules(conf, ['wifi', 'point-to-point', 'csma', 'mobility'], mandatory = False)
     ns3waf.check_modules(conf, ['point-to-point-layout'], mandatory = False)
     ns3waf.check_modules(conf, ['topology-read', 'applications', 'visualizer'], mandatory = False)
-    conf.check_tool('compiler_cc')
 
     conf.env.append_value('LINKFLAGS', '-pthread')
     conf.check (lib='dl', mandatory = True)
