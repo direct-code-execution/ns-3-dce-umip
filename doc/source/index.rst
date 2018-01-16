@@ -6,6 +6,8 @@
 Welcome to ns-3 DCE Mobile IPv6 support's documentation!
 ========================================================
 
+* `Doxygen <./doxygen/html/>`_: Documentation of the public APIs
+
 Contents:
 
 .. toctree::
