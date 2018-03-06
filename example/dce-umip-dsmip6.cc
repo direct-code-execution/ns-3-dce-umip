@@ -40,7 +40,6 @@
 #include "ns3/csma-helper.h"
 #include "ns3/wifi-helper.h"
 #include "ns3/yans-wifi-helper.h"
-#include "ns3/nqos-wifi-mac-helper.h"
 #include "ns3/mobility-module.h"
 #include "ns3/ping6-helper.h"
 #include "ns3/quagga-helper.h"

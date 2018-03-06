@@ -49,7 +49,6 @@
 #include "ns3/quagga-helper.h"
 #include "ns3/wifi-helper.h"
 #include "ns3/yans-wifi-helper.h"
-#include "ns3/nqos-wifi-mac-helper.h"
 #include "ns3/mobility-module.h"
 #include "ns3/csma-helper.h"
 #include "ns3/mip6d-helper.h"
@@ -234,7 +233,7 @@ DceUmipTestCase::DoRun (void)
   WifiHelper wifi;
   YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
   YansWifiChannelHelper phyChannel = YansWifiChannelHelper::Default ();
-  NqosWifiMacHelper mac;
+  WifiMacHelper mac;
   CsmaHelper csma;
   phy.SetChannel (phyChannel.Create ());
   mac.SetType ("ns3::AdhocWifiMac");
