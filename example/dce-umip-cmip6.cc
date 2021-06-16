@@ -105,13 +105,13 @@ int main (int argc, char *argv[])
 
 
   WifiHelper wifi;
-  YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
-  YansWifiChannelHelper phyChannel = YansWifiChannelHelper::Default ();
+  YansWifiPhyHelper phy;
+  YansWifiChannelHelper phyChannel;
   WifiMacHelper mac;
   CsmaHelper csma;
   phy.SetChannel (phyChannel.Create ());
   mac.SetType ("ns3::AdhocWifiMac");
-  wifi.SetStandard (WIFI_PHY_STANDARD_80211a);
+  wifi.SetStandard (WIFI_STANDARD_80211a);
 
   devices = csma.Install (NodeContainer (ar.Get (0), ha.Get (0), ar.Get (1)));
 
