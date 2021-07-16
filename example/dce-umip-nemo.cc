@@ -131,7 +131,7 @@ int main (int argc, char *argv[])
 
   WifiHelper wifi;
   YansWifiPhyHelper phy;
-  YansWifiChannelHelper phyChannel;
+  YansWifiChannelHelper phyChannel = YansWifiChannelHelper::Default ();
   WifiMacHelper mac;
   CsmaHelper csma;
   phy.SetChannel (phyChannel.Create ());

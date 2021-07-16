@@ -232,7 +232,7 @@ DceUmipTestCase::DoRun (void)
 
   WifiHelper wifi;
   YansWifiPhyHelper phy;
-  YansWifiChannelHelper phyChannel;
+  YansWifiChannelHelper phyChannel = YansWifiChannelHelper::Default ();
   WifiMacHelper mac;
   CsmaHelper csma;
   phy.SetChannel (phyChannel.Create ());
