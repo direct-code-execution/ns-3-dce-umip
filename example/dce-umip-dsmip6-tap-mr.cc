@@ -114,7 +114,7 @@ int main (int argc, char *argv[])
   CsmaHelper csma;
   phy.SetChannel (phyChannel.Create ());
   mac.SetType ("ns3::AdhocWifiMac");
-  wifi.SetStandard (WIFI_PHY_STANDARD_80211a);
+  wifi.SetStandard (WIFI_STANDARD_80211a);
 
   NetDeviceContainer tapDevs = csma.Install (NodeContainer (tapHost.Get (0), mr));
 

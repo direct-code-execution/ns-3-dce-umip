@@ -98,7 +98,7 @@ int main (int argc, char *argv[])
   YansWifiChannelHelper phyChannel = YansWifiChannelHelper::Default ();
   WifiMacHelper mac;
   mac.SetType ("ns3::AdhocWifiMac");
-  wifi.SetStandard (WIFI_PHY_STANDARD_80211a);
+  wifi.SetStandard (WIFI_STANDARD_80211a);
 
   NetDeviceContainer cn_devices = csma.Install (NodeContainer (lma.Get (0), cn.Get (0)));
 
